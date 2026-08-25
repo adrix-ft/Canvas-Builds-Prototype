@@ -127,7 +127,9 @@ export const CartDrawer = () => {
       });
       
       const data = await response.json();
-      if (!data.success) throw new Error(data.error || "Backend unavailable");
+      if (!data.success) {
+        throw new Error(data.error || "Backend unavailable or waking up. Please try again.");
+      }
 
       // 3. Open Razorpay Checkout Modal
       const options = {
@@ -138,63 +140,65 @@ export const CartDrawer = () => {
         description: "Digital Template Purchase",
         order_id: data.orderId,
         handler: async function (response: any) {
-  try {
-    // Send payment details to backend for instant verification
-    const verifyRes = await fetch("https://canvas-builds-prototype.onrender.com/api/verify-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature: response.razorpay_signature,
-      }),
-    });
+          try {
+            // Send payment details to backend for instant verification
+            const verifyRes = await fetch("https://canvas-builds-prototype.onrender.com/api/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
 
-    const verifyData = await verifyRes.json();
-    if (!verifyData.success) throw new Error(verifyData.error);
+            const verifyData = await verifyRes.json();
+            if (!verifyData.success) throw new Error(verifyData.error);
 
-    clearCart();
-    setIsCartOpen(false);
-    setShowGuestModal(false);
-    addToast("Payment successful! Your order is ready.", "success");
-    
-    // Redirect to customer dashboard
-    navigate('/account');
-  } catch (err) {
-    console.error("Verification failed:", err);
-    addToast("Payment completed! Syncing your order...", "info");
-    navigate('/account');
-  }
-},
+            clearCart();
+            setIsCartOpen(false);
+            setShowGuestModal(false);
+            setIsCheckingOut(false);
+            addToast("Payment successful! Your order is ready.", "success");
+            
+            // Route guests home, and registered users to the dashboard
+            if (user) {
+              navigate('/account');
+            } else {
+              addToast("Check your email for the download links!", "success");
+              navigate('/');
+            }
+          } catch (err: any) {
+            console.error("Verification failed:", err);
+            setIsCheckingOut(false);
+            addToast(`Payment verification failed: ${err.message}`, "info");
+          }
+        },
         prefill: {
           email: checkoutEmail,
         },
         theme: {
-          color: "#8b5cf6" // Matches your --color-accent-purple
+          color: "#8b5cf6" 
+        },
+        modal: {
+          ondismiss: function() {
+            // Stop the loading spinner if the user closes the payment window
+            setIsCheckingOut(false);
+          }
         }
       };
 
       const rzp = new (window as any).Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
-        addToast("Payment cancelled or failed.", "info");
+        addToast(`Payment failed: ${response.error.description}`, "info");
         setIsCheckingOut(false);
       });
       rzp.open();
 
-    } catch (err) {
-      // Fallback: If backend is down, open WhatsApp
-      const orderDetails = cart
-        .map((item) => `• ${item.title} (${item.priceType === 'ready' ? 'Ready Website' : 'Premium Code'} - ₹${item.price})`)
-        .join("%0A");
-      
-      const waText = `Hi Adarsh! I want to checkout but the gateway is down:%0A%0A${orderDetails}%0A%0ATotal: *₹${subtotal.toLocaleString('en-IN')}*%0A%0AMy Email: ${checkoutEmail}`;
-      
-      window.open(`https://wa.me/917906568743?text=${waText}`, "_blank");
-      
+    } catch (err: any) {
+      console.error("RAZORPAY CRASH REASON:", err);
       setIsCheckingOut(false);
-      clearCart();
-      setIsCartOpen(false);
-      setShowGuestModal(false);
+      addToast(`Checkout Error: ${err.message}`, "info");
     }
   };
 
