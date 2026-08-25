@@ -9,6 +9,11 @@ require('dotenv').config();
 
 const app = express();
 
+// Tell Express to trust Render's reverse proxy
+app.set('trust proxy', 1);
+
+// Middleware
+app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
 // Middleware
 app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
