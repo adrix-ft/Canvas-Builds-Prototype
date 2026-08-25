@@ -304,13 +304,18 @@ app.post('/api/verify-payment', async (req, res) => {
 
     if (error || !order) throw new Error("Order not found in DB");
 
-    // Deliver via SMTP Email
-    await deliverOrder(order);
+    // 🚨 FIX: Prevent email errors from ruining the checkout UI 🚨
+    try {
+      await deliverOrder(order);
+    } catch (emailErr) {
+      console.error('SMTP Email Error (Order is still Paid):', emailErr);
+    }
 
+    // Always return success if the database updated!
     res.status(200).json({ success: true, orderId: order.id });
   } catch (error) {
     console.error('Verification Error:', error);
-    res.status(500).json({ error: 'Payment verification failed' });
+    res.status(500).json({ success: false, error: 'Payment verification failed' });
   }
 });
 
