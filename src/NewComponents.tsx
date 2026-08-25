@@ -346,23 +346,14 @@ export const CartDrawer = () => {
                   </span>
                 </div>
                 
-                {/* Temporarily Disabled Checkout Button */}
-                <button
-                  onClick={() => addToast("Payments are currently being set up. Check back soon!", "info")}
-                  className="w-full bg-[var(--color-text-primary)]/60 text-white/80 dark:bg-slate-800 dark:text-slate-500 py-4 rounded-xl font-bold flex items-center justify-center gap-2 cursor-not-allowed"
-                >
-                  Checkout (Coming Soon)
-                </button>
-
-                {/* Original Button (Keep this commented out for later!)
+                {/* Live Razorpay Checkout Button */}
                 <button
                   onClick={initiateCheckout}
                   disabled={isCheckingOut}
                   className="w-full bg-[var(--color-text-primary)] text-white dark:bg-slate-800 dark:hover:bg-[var(--color-accent-pink)] hover:bg-[var(--color-accent-purple)] py-4 rounded-xl font-bold transition-all hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
                 >
                   <Check className="w-5 h-5" /> Proceed to Checkout
-                </button> 
-                */}
+                </button>
               </div>
             )}
           </motion.div>
