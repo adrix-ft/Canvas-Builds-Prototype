@@ -116,7 +116,7 @@ export const CartDrawer = () => {
 
     try {
       // 2. Call our Node.js Backend to create the order
-      const response = await fetch("http://localhost:5000/api/checkout", {
+      const response = await fetch("https://canvas-builds-prototype.onrender.com/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -140,7 +140,7 @@ export const CartDrawer = () => {
         handler: async function (response: any) {
   try {
     // Send payment details to backend for instant verification
-    const verifyRes = await fetch("http://localhost:5000/api/verify-payment", {
+    const verifyRes = await fetch("https://canvas-builds-prototype.onrender.com/api/verify-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
