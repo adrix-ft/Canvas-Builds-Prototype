@@ -80,13 +80,13 @@ async function deliverOrder(order) {
 
   const invoiceRows = order.items.map(item => `
     <tr>
-      <td style="padding: 16px 0; border-bottom: 1px solid #e2e8f0; color: #042416; font-weight: bold; font-size: 15px;">
+      <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #042416; font-weight: bold; font-size: 14px; word-break: break-word;">
         ${item.title}
-        <div style="font-size: 11px; color: #718096; font-weight: normal; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+        <div style="font-size: 10px; color: #718096; font-weight: normal; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px;">
           ${item.priceType === 'ready' ? 'Ready Website' : 'Premium Code'}
         </div>
       </td>
-      <td style="padding: 16px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #042416; font-weight: bold; font-size: 15px;">
+      <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #042416; font-weight: bold; font-size: 14px; white-space: nowrap;">
         ₹${item.price}
       </td>
     </tr>
@@ -95,15 +95,15 @@ async function deliverOrder(order) {
   let downloadSection = '';
   if (downloadLinks.length > 0) {
     const linksList = downloadLinks.map(l => `
-      <a href="${l.url}" style="display: inline-block; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 14px 24px; border-radius: 12px; font-weight: bold; font-size: 14px; margin-top: 12px; margin-right: 8px; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.25);">
+      <a href="${l.url}" style="display: block; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 12px 18px; border-radius: 12px; font-weight: bold; font-size: 13px; margin-top: 10px; text-align: center; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2);">
         ⬇ Download ${l.title} (ZIP)
       </a>
     `).join('');
 
     downloadSection = `
-      <div style="background-color: #f8fafc; border-radius: 16px; padding: 32px; margin-top: 32px; border: 1px solid #e2e8f0;">
-        <h3 style="margin: 0 0 12px; font-size: 18px; color: #042416; font-weight: 800;">Your Secure Downloads</h3>
-        <p style="margin: 0 0 20px; font-size: 14px; color: #4a5568; line-height: 1.6;">These encrypted links will expire in exactly <strong>24 hours</strong>. Please download your files immediately.</p>
+      <div style="background-color: #f8fafc; border-radius: 16px; padding: 20px 16px; margin-top: 24px; border: 1px solid #e2e8f0;">
+        <h3 style="margin: 0 0 8px; font-size: 16px; color: #042416; font-weight: 800;">Your Secure Downloads</h3>
+        <p style="margin: 0 0 12px; font-size: 13px; color: #4a5568; line-height: 1.5;">Links expire in <strong>24 hours</strong>. Please download your files immediately.</p>
         ${linksList}
       </div>
     `;
@@ -113,9 +113,9 @@ async function deliverOrder(order) {
   const hasReady = order.items.some(i => i.priceType === 'ready');
   if (hasReady) {
     readySection = `
-      <div style="background-color: #ecfeff; border-radius: 16px; padding: 32px; margin-top: 32px; border: 1px solid #a5f3fc;">
-        <h3 style="margin: 0 0 12px; font-size: 18px; color: #0891b2; font-weight: 800;">Ready Website Setup 🚀</h3>
-        <p style="margin: 0; font-size: 14px; color: #164e63; line-height: 1.6;">Our team has received your order. We will reach out shortly to collect your custom photos and links!</p>
+      <div style="background-color: #ecfeff; border-radius: 16px; padding: 20px 16px; margin-top: 24px; border: 1px solid #a5f3fc;">
+        <h3 style="margin: 0 0 8px; font-size: 16px; color: #0891b2; font-weight: 800;">Ready Website Setup 🚀</h3>
+        <p style="margin: 0; font-size: 13px; color: #164e63; line-height: 1.5;">Our team has received your order. We will reach out shortly to collect your custom photos and links!</p>
       </div>
     `;
   }
@@ -124,46 +124,74 @@ async function deliverOrder(order) {
   const emailHTML = `
   <!DOCTYPE html>
   <html>
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-  <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f4; margin: 0; padding: 40px 20px;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+      table { border-collapse: collapse; }
+      @media only screen and (max-width: 600px) {
+        .email-container { width: 100% !important; max-width: 100% !important; border-radius: 0 !important; border: none !important; }
+        .mobile-padding { padding: 24px 16px !important; }
+        .card-padding { padding: 16px 14px !important; }
+      }
+    </style>
+  </head>
+  <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f4; margin: 0; padding: 16px 8px; -webkit-text-size-adjust: 100%;">
+    <table width="100%" cellpadding="0" cellspacing="0" class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+      <!-- Header -->
       <tr>
-        <td style="padding: 40px 40px 30px; text-align: center; background-color: #042416;">
-          <div style="color: #ffffff; font-weight: 900; font-size: 32px; letter-spacing: -0.5px;">Canvas<span style="color: #10b981;">Builds</span></div>
-          <div style="color: #10b981; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; font-weight: bold;">Official Receipt</div>
+        <td class="mobile-padding" style="padding: 28px 24px 20px; text-align: center; background-color: #042416;">
+          <div style="color: #ffffff; font-weight: 900; font-size: 26px; letter-spacing: -0.5px;">Canvas<span style="color: #10b981;">Builds</span></div>
+          <div style="color: #10b981; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: bold;">Official Receipt</div>
         </td>
       </tr>
+      
+      <!-- Body Content -->
       <tr>
-        <td style="padding: 40px;">
-          <h1 style="margin: 0 0 12px; font-size: 26px; color: #042416; font-weight: 800; letter-spacing: -0.5px;">Thank you for your order.</h1>
-          <p style="margin: 0 0 40px; font-size: 15px; color: #4a5568; line-height: 1.7;">Your payment has been successfully processed.</p>
-          <div style="background-color: #ffffff; border-radius: 16px; padding: 32px; margin-bottom: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-            <table width="100%" cellpadding="0" cellspacing="0">
+        <td class="mobile-padding" style="padding: 28px 24px;">
+          <h1 style="margin: 0 0 8px; font-size: 22px; color: #042416; font-weight: 800; letter-spacing: -0.5px;">Thank you for your order.</h1>
+          <p style="margin: 0 0 24px; font-size: 14px; color: #4a5568; line-height: 1.6;">Your payment has been successfully processed.</p>
+
+          <!-- Invoice Details Card -->
+          <div class="card-padding" style="background-color: #ffffff; border-radius: 16px; padding: 20px 16px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
               <tr>
-                <td style="padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
-                  <span style="font-size: 10px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Order ID</span><br>
-                  <span style="font-size: 14px; color: #042416; font-weight: bold; margin-top: 4px; display: inline-block;">${order.razorpay_order_id}</span>
+                <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; width: 60%; word-break: break-all; vertical-align: top;">
+                  <span style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Order ID</span><br>
+                  <span style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${order.razorpay_order_id}</span>
                 </td>
-                <td style="padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; text-align: right;">
-                  <span style="font-size: 10px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Date</span><br>
-                  <span style="font-size: 14px; color: #042416; font-weight: bold; margin-top: 4px; display: inline-block;">${orderDate}</span>
+                <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; text-align: right; width: 40%; vertical-align: top;">
+                  <span style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Date</span><br>
+                  <span style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${orderDate}</span>
                 </td>
               </tr>
+              
+              <!-- Items -->
               ${invoiceRows}
+              
               <tr>
-                <td style="padding-top: 20px; font-size: 14px; color: #718096; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Total Paid</td>
-                <td style="padding-top: 20px; text-align: right; font-size: 24px; color: #10b981; font-weight: 900;">₹${order.total_amount}</td>
+                <td style="padding-top: 14px; font-size: 13px; color: #718096; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total Paid</td>
+                <td style="padding-top: 14px; text-align: right; font-size: 18px; color: #10b981; font-weight: 900;">₹${order.total_amount}</td>
               </tr>
             </table>
           </div>
+
           ${downloadSection}
           ${readySection}
+
+          <div style="margin-top: 32px; text-align: center;">
+            <p style="margin: 0 0 6px; font-size: 13px; color: #718096;">Need help with your template?</p>
+            <a href="mailto:canvasbuildsofficial@gmail.com" style="color: #ec4899; text-decoration: underline; font-weight: bold; font-size: 13px;">Contact Support</a>
+          </div>
         </td>
       </tr>
+
+      <!-- Footer -->
       <tr>
-        <td style="background-color: #042416; padding: 32px 40px; text-align: center;">
-          <p style="margin: 0 0 10px; font-size: 12px; color: #ffffff; font-weight: bold; letter-spacing: 2px; text-transform: uppercase;">Canvas Builds</p>
-          <p style="margin: 0; font-size: 11px; color: #64748b; line-height: 1.6;">&copy; ${new Date().getFullYear()} Canvas Builds. All rights reserved.</p>
+        <td style="background-color: #042416; padding: 24px 16px; text-align: center;">
+          <p style="margin: 0 0 6px; font-size: 11px; color: #ffffff; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase;">Canvas Builds</p>
+          <p style="margin: 0; font-size: 10px; color: #64748b; line-height: 1.5;">&copy; ${new Date().getFullYear()} Canvas Builds. All rights reserved.</p>
         </td>
       </tr>
     </table>
