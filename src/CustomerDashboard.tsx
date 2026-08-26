@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Heart, Clock, Sparkles, ArrowRight, ShieldCheck, Trash2, Loader2, Download, AlertCircle, CheckCircle } from 'lucide-react';
+import { Package, Heart, Clock, Sparkles, ArrowRight, ShieldCheck, Trash2, Loader2, Download, AlertCircle, CheckCircle, MessageCircle } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -9,7 +9,7 @@ export const CustomerDashboard = () => {
   const { user, addToast } = useAppContext();
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Orders State
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
@@ -31,7 +31,7 @@ export const CustomerDashboard = () => {
           .select('*')
           .or(`user_id.eq.${user.id},customer_email.eq.${user.email}`)
           .order('created_at', { ascending: false });
-        
+          
         if (error) throw error;
         if (data) setOrders(data);
       } catch (err) {
@@ -41,6 +41,7 @@ export const CustomerDashboard = () => {
         setIsLoadingOrders(false);
       }
     };
+
     fetchOrders();
   }, [user]);
 
@@ -220,7 +221,7 @@ export const CustomerDashboard = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-[10px] text-[var(--color-text-primary)]/50 font-bold uppercase tracking-widest mb-1.5">Total</p>
-                          <p className="font-black text-[var(--color-text-primary)] text-xl">₹{order.total_amount}</p>
+                          <p className="font-black text-[var(--color-text-primary)] text-xl">₹ {order.total_amount}</p>
                         </div>
                       </div>
 
@@ -248,7 +249,19 @@ export const CustomerDashboard = () => {
                                 {order.status === 'pending' ? (
                                   <span className="text-xs font-bold text-amber-500 flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 px-4 py-2.5 rounded-xl border border-amber-100 dark:border-amber-900/50"><AlertCircle className="w-4 h-4"/> Awaiting Payment</span>
                                 ) : item.priceType === 'ready' ? (
-                                  <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5 bg-cyan-50 dark:bg-cyan-950/30 px-4 py-2.5 rounded-xl border border-cyan-100 dark:border-cyan-900/50"><CheckCircle className="w-4 h-4"/> Setting up your site...</span>
+                                  <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto mt-3 sm:mt-0">
+                                    <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 flex items-center justify-center sm:justify-start gap-1.5 bg-cyan-50 dark:bg-cyan-950/30 px-4 py-2.5 rounded-xl border border-cyan-100 dark:border-cyan-900/50 w-full sm:w-auto">
+                                      <CheckCircle className="w-4 h-4"/> Payment Confirmed
+                                    </span>
+                                    <a
+                                      href={`https://wa.me/917906568743?text=${encodeURIComponent(`Hi! I just ordered the Ready Website for '${item.title}'. \nOrder ID: ${order.id.split('-')[0]}\n\nHere are the details and Google Drive link for my photos:`)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer animate-pulse hover:animate-none"
+                                    >
+                                      <MessageCircle className="w-4 h-4" /> Send Content via WhatsApp
+                                    </a>
+                                  </div>
                                 ) : isWithin24h ? (
                                   <button
                                     onClick={() => handleDownload(item, itemId)}

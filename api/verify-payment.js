@@ -8,7 +8,6 @@ let transporter;
 
 async function deliverOrder(order) {
   const downloadLinks = [];
-
   for (const item of order.items) {
     if (item.priceType === 'code') {
       if (item.id >= 10000) {
@@ -18,18 +17,15 @@ async function deliverOrder(order) {
           .select('included_items')
           .eq('id', realBundleId)
           .single();
-
         if (bundle && bundle.included_items) {
           const itemsList = Array.isArray(bundle.included_items)
             ? bundle.included_items
             : JSON.parse(bundle.included_items || '[]');
-
           if (itemsList.length > 0) {
             const { data: bundleProducts } = await supabase
               .from('products')
               .select('title, zip_filename')
               .in('title', itemsList);
-
             if (bundleProducts) {
               for (const prod of bundleProducts) {
                 if (prod.zip_filename) {
@@ -37,7 +33,6 @@ async function deliverOrder(order) {
                     .storage
                     .from('templates')
                     .createSignedUrl(prod.zip_filename, 86400);
-
                   if (storageData) {
                     downloadLinks.push({ title: prod.title, url: storageData.signedUrl });
                   }
@@ -52,13 +47,11 @@ async function deliverOrder(order) {
           .select('zip_filename')
           .eq('id', item.id)
           .single();
-
         if (product && product.zip_filename) {
           const { data: storageData } = await supabase
             .storage
             .from('templates')
             .createSignedUrl(product.zip_filename, 86400);
-
           if (storageData) {
             downloadLinks.push({ title: item.title, url: storageData.signedUrl });
           }
@@ -76,7 +69,7 @@ async function deliverOrder(order) {
         </div>
       </td>
       <td class="text-primary border-color" style="padding: 14px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #09090b; font-weight: bold; font-size: 14px; white-space: nowrap; vertical-align: top;">
-        ₹${item.price}
+        ₹ ${item.price}
       </td>
     </tr>
   `).join('');
@@ -85,10 +78,9 @@ async function deliverOrder(order) {
   if (downloadLinks.length > 0) {
     const linksList = downloadLinks.map(l => `
       <a href="${l.url}" style="display: block; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 14px 18px; border-radius: 12px; font-weight: bold; font-size: 13px; margin-top: 14px; text-align: center; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2);">
-        ⬇ Download ${l.title} (ZIP)
+          Download ${l.title} (ZIP)
       </a>
     `).join('');
-
     downloadSection = `
       <div class="card-bg border-color" style="background-color: #f8fafc; border-radius: 16px; padding: 20px 16px; margin-top: 24px; border: 1px solid #e2e8f0;">
         <h3 class="text-primary" style="margin: 0 0 8px; font-size: 16px; color: #09090b; font-weight: 800;">Your Secure Downloads</h3>
@@ -115,33 +107,85 @@ async function deliverOrder(order) {
   if (order.user_id) {
     try {
       const { data: authData } = await supabase.auth.admin.getUserById(order.user_id);
-      if (authData?.user?.user_metadata?.full_name) {
-        customerName = authData.user.user_metadata.full_name.split(' ')[0];
+      const metadata = authData?.user?.user_metadata || {};
+      
+      const fullName = metadata.full_name || order.customer_email.split('@')[0];
+      const avatarUrl = metadata.avatar_url;
+      const initial = fullName.charAt(0).toUpperCase();
+
+      if (metadata.full_name) {
+        customerName = metadata.full_name.split(' ')[0];
       } else {
-        customerName = order.customer_email.split('@')[0];
-        customerName = customerName.charAt(0).toUpperCase() + customerName.slice(1);
+        customerName = fullName.charAt(0).toUpperCase() + fullName.slice(1);
       }
       
       accountBadge = `
-        <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 10px 14px; border-radius: 12px; margin-bottom: 24px; display: inline-block;">
-          <span style="font-size: 10px; color: #38bdf8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">👤 Verified Member Account</span><br>
-          <span style="font-size: 13px; color: #e2e8f0; font-weight: bold; margin-top: 4px; display: inline-block;">${order.customer_email}</span>
-        </div>
+        <table cellpadding="0" cellspacing="0" class="card-bg border-color" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 24px; display: inline-block;">
+          <tr>
+            <td style="padding: 16px;">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding-right: 16px; vertical-align: middle;">
+                    ${avatarUrl 
+                      ? `<img src="${avatarUrl}" alt="Profile" style="width: 46px; height: 46px; border-radius: 50%; display: block; border: 2px solid #10b981; object-fit: cover;">`
+                      : `<div style="width: 46px; height: 46px; border-radius: 50%; background-color: #10b981; color: #ffffff; font-size: 18px; font-weight: bold; text-align: center; line-height: 46px; border: 2px solid #10b981;">${initial}</div>`
+                    }
+                  </td>
+                  <td style="vertical-align: middle;">
+                    <div style="font-size: 10px; color: #10b981; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                      ✔ Verified Member
+                    </div>
+                    <div class="text-primary" style="font-size: 15px; color: #09090b; font-weight: bold; margin-bottom: 2px; line-height: 1.2;">
+                      ${fullName}
+                    </div>
+                    <div class="text-secondary" style="font-size: 12px; color: #718096; line-height: 1.2;">
+                      ${order.customer_email}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       `;
     } catch (e) {
       console.error("Failed to fetch user metadata:", e);
     }
   } else {
+    customerName = order.customer_email.split('@')[0];
+    customerName = customerName.charAt(0).toUpperCase() + customerName.slice(1);
+    const initial = customerName.charAt(0).toUpperCase();
+
     accountBadge = `
-      <div class="card-bg border-color" style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; margin-bottom: 24px; display: inline-block;">
-        <span class="text-secondary" style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">🛒 Guest Checkout</span><br>
-        <span class="text-primary" style="font-size: 13px; color: #334155; font-weight: bold; margin-top: 4px; display: inline-block;">${order.customer_email}</span>
-      </div>
+      <table cellpadding="0" cellspacing="0" class="card-bg border-color" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 24px; display: inline-block;">
+        <tr>
+          <td style="padding: 16px;">
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding-right: 16px; vertical-align: middle;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background-color: #e2e8f0; color: #64748b; font-size: 18px; font-weight: bold; text-align: center; line-height: 46px; border: 2px solid #cbd5e1;">${initial}</div>
+                </td>
+                <td style="vertical-align: middle;">
+                  <div class="text-secondary" style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                    Guest Checkout
+                  </div>
+                  <div class="text-primary" style="font-size: 15px; color: #09090b; font-weight: bold; margin-bottom: 2px; line-height: 1.2;">
+                    Guest User
+                  </div>
+                  <div class="text-secondary" style="font-size: 12px; color: #718096; line-height: 1.2;">
+                    ${order.customer_email}
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     `;
   }
 
   const orderDate = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
-  
+
   const emailHTML = `
   <!DOCTYPE html>
   <html>
@@ -192,7 +236,7 @@ async function deliverOrder(order) {
           <tr>
             <td class="mobile-padding" style="padding: 32px 24px;">
               ${accountBadge}
-
+              
               <h1 class="text-primary" style="margin: 0 0 8px; font-size: 22px; color: #09090b; font-weight: 800; letter-spacing: -0.5px;">Hi ${customerName}, thanks for your order!</h1>
               <p class="text-secondary" style="margin: 0 0 24px; font-size: 14px; color: #4a5568; line-height: 1.6;">Your payment has been successfully processed. Here is your receipt and access links.</p>
 
@@ -215,7 +259,7 @@ async function deliverOrder(order) {
                   
                   <tr>
                     <td style="padding-top: 14px; font-size: 13px; color: #718096; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total Paid</td>
-                    <td style="padding-top: 14px; text-align: right; font-size: 18px; color: #10b981; font-weight: 900;">₹${order.total_amount}</td>
+                    <td style="padding-top: 14px; text-align: right; font-size: 18px; color: #10b981; font-weight: 900;">₹ ${order.total_amount}</td>
                   </tr>
                 </table>
               </div>
@@ -276,7 +320,7 @@ export default async function handler(req, res) {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
   }
-  
+
   if (!transporter) {
     transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -298,6 +342,7 @@ export default async function handler(req, res) {
 
     const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
     hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+
     if (hmac.digest('hex') !== razorpay_signature) {
       return res.status(400).json({ error: 'Invalid payment signature' });
     }
@@ -310,6 +355,22 @@ export default async function handler(req, res) {
       .single();
 
     if (error || !order) throw new Error("Order not found in database");
+
+    // --- AUTO-FULFILLMENT FOR SOURCE CODE ---
+    // Check if the order contains any "Ready Website" items
+    const hasReadyWebsite = order.items.some(item => item.priceType === 'ready');
+    
+    // If it only contains code/bundles, mark it as automatically delivered!
+    if (!hasReadyWebsite) {
+      await supabase
+        .from('orders')
+        .update({ fulfillment_status: 'delivered' })
+        .eq('id', order.id);
+      
+      // Update the local object so the rest of the function knows it's delivered
+      order.fulfillment_status = 'delivered';
+    }
+    // ---------------------------------------------
 
     if (order.applied_promo_code) {
       try {
