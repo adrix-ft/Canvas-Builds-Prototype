@@ -120,7 +120,43 @@ async function deliverOrder(order) {
     `;
   }
 
+  // --- PERSONALIZATION LOGIC ---
+  let customerName = "there";
+  let accountBadge = "";
+
+  if (order.user_id) {
+    try {
+      const { data: authData } = await supabase.auth.admin.getUserById(order.user_id);
+      if (authData?.user?.user_metadata?.full_name) {
+        // Use just their first name for a friendly greeting
+        customerName = authData.user.user_metadata.full_name.split(' ')[0];
+      } else {
+        // Fallback to capitalizing the start of their email
+        customerName = order.customer_email.split('@')[0];
+        customerName = customerName.charAt(0).toUpperCase() + customerName.slice(1);
+      }
+      
+      accountBadge = `
+        <div style="background-color: #ecfeff; border: 1px solid #a5f3fc; padding: 10px 14px; border-radius: 12px; margin-bottom: 24px; display: inline-block;">
+          <span style="font-size: 10px; color: #0891b2; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">👤 Verified Member Account</span><br>
+          <span style="font-size: 13px; color: #164e63; font-weight: bold; margin-top: 4px; display: inline-block;">${order.customer_email}</span>
+        </div>
+      `;
+    } catch (e) {
+      console.error("Failed to fetch user metadata:", e);
+    }
+  } else {
+    accountBadge = `
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; margin-bottom: 24px; display: inline-block;">
+        <span style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">🛒 Guest Checkout</span><br>
+        <span style="font-size: 13px; color: #334155; font-weight: bold; margin-top: 4px; display: inline-block;">${order.customer_email}</span>
+      </div>
+    `;
+  }
+
   const orderDate = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  
+  // --- BULLETPROOF ROUNDED HTML ---
   const emailHTML = `
   <!DOCTYPE html>
   <html>
@@ -128,73 +164,83 @@ async function deliverOrder(order) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+      body { margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f6f6f4; }
       table { border-collapse: collapse; }
+      .wrapper { width: 100%; max-width: 540px; margin: 0 auto; padding: 24px 12px; box-sizing: border-box; }
+      .container { background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
       @media only screen and (max-width: 600px) {
-        .email-container { width: 100% !important; max-width: 100% !important; border-radius: 0 !important; border: none !important; }
+        .wrapper { padding: 16px 8px !important; }
+        .container { border-radius: 20px !important; }
         .mobile-padding { padding: 24px 16px !important; }
         .card-padding { padding: 16px 14px !important; }
       }
     </style>
   </head>
-  <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f4; margin: 0; padding: 16px 8px; -webkit-text-size-adjust: 100%;">
-    <table width="100%" cellpadding="0" cellspacing="0" class="email-container" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
-      <!-- Header -->
-      <tr>
-        <td class="mobile-padding" style="padding: 28px 24px 20px; text-align: center; background-color: #042416;">
-          <div style="color: #ffffff; font-weight: 900; font-size: 26px; letter-spacing: -0.5px;">Canvas<span style="color: #10b981;">Builds</span></div>
-          <div style="color: #10b981; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: bold;">Official Receipt</div>
-        </td>
-      </tr>
-      
-      <!-- Body Content -->
-      <tr>
-        <td class="mobile-padding" style="padding: 28px 24px;">
-          <h1 style="margin: 0 0 8px; font-size: 22px; color: #042416; font-weight: 800; letter-spacing: -0.5px;">Thank you for your order.</h1>
-          <p style="margin: 0 0 24px; font-size: 14px; color: #4a5568; line-height: 1.6;">Your payment has been successfully processed.</p>
-
-          <!-- Invoice Details Card -->
-          <div class="card-padding" style="background-color: #ffffff; border-radius: 16px; padding: 20px 16px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
-              <tr>
-                <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; width: 60%; word-break: break-all; vertical-align: top;">
-                  <span style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Order ID</span><br>
-                  <span style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${order.razorpay_order_id}</span>
-                </td>
-                <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; text-align: right; width: 40%; vertical-align: top;">
-                  <span style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Date</span><br>
-                  <span style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${orderDate}</span>
-                </td>
-              </tr>
+  <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f4; margin: 0; padding: 0; -webkit-text-size-adjust: 100%;">
+    <div class="wrapper">
+      <div class="container" style="background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <!-- Header -->
+          <tr>
+            <td class="mobile-padding" style="padding: 32px 24px 24px; text-align: center; background-color: #042416;">
+              <div style="color: #ffffff; font-weight: 900; font-size: 26px; letter-spacing: -0.5px;">Canvas<span style="color: #10b981;">Builds</span></div>
+              <div style="color: #10b981; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: bold;">Official Receipt</div>
+            </td>
+          </tr>
+          
+          <!-- Body Content -->
+          <tr>
+            <td class="mobile-padding" style="padding: 32px 24px;">
               
-              <!-- Items -->
-              ${invoiceRows}
-              
-              <tr>
-                <td style="padding-top: 14px; font-size: 13px; color: #718096; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total Paid</td>
-                <td style="padding-top: 14px; text-align: right; font-size: 18px; color: #10b981; font-weight: 900;">₹${order.total_amount}</td>
-              </tr>
-            </table>
-          </div>
+              ${accountBadge}
 
-          ${downloadSection}
-          ${readySection}
+              <h1 style="margin: 0 0 8px; font-size: 22px; color: #042416; font-weight: 800; letter-spacing: -0.5px;">Hi ${customerName}, thanks for your order!</h1>
+              <p style="margin: 0 0 24px; font-size: 14px; color: #4a5568; line-height: 1.6;">Your payment has been successfully processed. Here is your receipt and access links.</p>
 
-          <div style="margin-top: 32px; text-align: center;">
-            <p style="margin: 0 0 6px; font-size: 13px; color: #718096;">Need help with your template?</p>
-            <a href="mailto:canvasbuildsofficial@gmail.com" style="color: #ec4899; text-decoration: underline; font-weight: bold; font-size: 13px;">Contact Support</a>
-          </div>
-        </td>
-      </tr>
+              <!-- Invoice Details Card -->
+              <div class="card-padding" style="background-color: #ffffff; border-radius: 16px; padding: 20px 16px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="table-layout: fixed;">
+                  <tr>
+                    <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; width: 60%; word-break: break-all; vertical-align: top;">
+                      <span style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Order ID</span><br>
+                      <span style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${order.razorpay_order_id}</span>
+                    </td>
+                    <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; text-align: right; width: 40%; vertical-align: top;">
+                      <span style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Date</span><br>
+                      <span style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${orderDate}</span>
+                    </td>
+                  </tr>
+                  
+                  <!-- Items -->
+                  ${invoiceRows}
+                  
+                  <tr>
+                    <td style="padding-top: 14px; font-size: 13px; color: #718096; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total Paid</td>
+                    <td style="padding-top: 14px; text-align: right; font-size: 18px; color: #10b981; font-weight: 900;">₹${order.total_amount}</td>
+                  </tr>
+                </table>
+              </div>
 
-      <!-- Footer -->
-      <tr>
-        <td style="background-color: #042416; padding: 24px 16px; text-align: center;">
-          <p style="margin: 0 0 6px; font-size: 11px; color: #ffffff; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase;">Canvas Builds</p>
-          <p style="margin: 0; font-size: 10px; color: #64748b; line-height: 1.5;">&copy; ${new Date().getFullYear()} Canvas Builds. All rights reserved.</p>
-        </td>
-      </tr>
-    </table>
+              ${downloadSection}
+              ${readySection}
+
+              <div style="margin-top: 32px; text-align: center;">
+                <p style="margin: 0 0 6px; font-size: 13px; color: #718096;">Need help with your template?</p>
+                <a href="mailto:canvasbuildsofficial@gmail.com" style="color: #ec4899; text-decoration: underline; font-weight: bold; font-size: 13px;">Contact Support</a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #042416; padding: 24px 16px; text-align: center;">
+              <p style="margin: 0 0 6px; font-size: 11px; color: #ffffff; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase;">Canvas Builds</p>
+              <p style="margin: 0; font-size: 10px; color: #64748b; line-height: 1.5;">&copy; ${new Date().getFullYear()} Canvas Builds. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
   </body>
   </html>`;
 
