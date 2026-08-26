@@ -54,7 +54,8 @@ import {
   Zap,
   Shield,
   Sun,
-  Package
+  Package,
+  Gift
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 import { getProductIcon } from "./iconHelper";
@@ -63,9 +64,9 @@ export type ProductItem = {
   id: number;
   category: string;
   title: string;
-  code_price: number; 
-  ready_price: number; 
-  original_price?: number; 
+  code_price: number;
+  ready_price: number;
+  original_price?: number;
   rating: string;
   emoji: React.ReactNode;
   gradient: string;
@@ -243,7 +244,6 @@ const Navbar = () => {
               >
                 <Search className="w-5 h-5" />
               </button>
-
               <button
                 onClick={() => setIsCartOpen(true)}
                 className="relative hover:bg-[var(--color-bg-secondary)] p-2 sm:p-2.5 rounded-full transition-colors text-[var(--color-text-primary)]/80 cursor-pointer"
@@ -255,7 +255,6 @@ const Navbar = () => {
                   </span>
                 )}
               </button>
-
               <button
                 onClick={() => setIsAuthOpen(true)}
                 className="hidden sm:flex hover:bg-[var(--color-bg-secondary)] p-1.5 rounded-full transition-colors cursor-pointer items-center justify-center border border-transparent hover:border-black/5 dark:hover:border-white/5 ml-1"
@@ -274,7 +273,6 @@ const Navbar = () => {
                   </div>
                 )}
               </button>
-
               <button
                 className="lg:hidden p-2 text-[var(--color-text-primary)]/80 hover:bg-[var(--color-bg-secondary)] rounded-full cursor-pointer"
                 onClick={() => setIsMobileMenuOpen(true)}
@@ -389,7 +387,7 @@ const Cursor = ({ color, name, x, y, delay, img, durationX = 12, durationY = 15,
       x: { duration: durationX, repeat: Infinity, ease: "easeInOut", delay },
       y: { duration: durationY, repeat: Infinity, ease: "easeInOut", delay }
     }}
-    className="absolute pointer-events-none flex flex-col items-start scale-75 sm:scale-100 will-change-transform"
+    className="absolute pointer-events-none flex flex-col items-start scale-75 sm:scale-100 will-change-transform transform-gpu"
     style={{ left: x, top: y }}
   >
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="z-30 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
@@ -406,20 +404,20 @@ const Hero = () => {
   return (
     <div className="relative overflow-hidden min-h-[90dvh] flex flex-col items-center justify-center w-full pt-28 bg-[var(--color-bg-primary)]">
       <div 
-         className="absolute inset-0 z-0 bg-blueprint-grid opacity-100 pointer-events-none"
-         style={{ 
-           maskImage: 'radial-gradient(ellipse 80% 60% at 50% 45%, black 20%, transparent 100%)',
-           WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 45%, black 20%, transparent 100%)'
-         }}
+        className="absolute inset-0 z-0 bg-blueprint-grid opacity-100 pointer-events-none"
+        style={{
+          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 45%, black 20%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 45%, black 20%, transparent 100%)'
+        }}
       ></div>
 
       <div className="absolute inset-0 max-w-[1200px] mx-auto z-10 pointer-events-none">
-        <Cursor color="#10b981" name="Adarsh" x="65%" y="15%" delay={0.2} img="/assets/3.png" moveX={30} moveY={40} durationX={14} />
-        <Cursor color="#ec4899" name="Akshara" x="75%" y="20%" delay={1.2} img="/assets/5.png" moveX={-30} moveY={30} durationX={12} />
-        <Cursor color="#3b82f6" name="Adrix" x="82%" y="28%" delay={0.5} img="/assets/4.png" moveX={-20} moveY={20} durationX={13} />
-        <Cursor color="#8b5cf6" name="Shantanu" x="20%" y="25%" delay={2.0} img="/assets/1.png" moveX={40} moveY={-20} durationX={15} />
-        <Cursor color="#f59e0b" name="Ayush" x="15%" y="65%" delay={0.8} img="/assets/2.png" moveX={-40} moveY={-30} durationY={16} />
-        <Cursor color="#06b6d4" name="Batit" x="40%" y="75%" delay={1.5} img="/assets/6.png" moveX={20} moveY={-40} durationX={11} />
+        <Cursor color="#10b981" name="Adarsh" x="65%" y="15%" delay={0.2} img="/assets/3.webp" moveX={30} moveY={40} durationX={14} />
+        <Cursor color="#ec4899" name="Akshara" x="75%" y="20%" delay={1.2} img="/assets/5.webp" moveX={-30} moveY={30} durationX={12} />
+        <Cursor color="#3b82f6" name="Adrix" x="82%" y="28%" delay={0.5} img="/assets/4.webp" moveX={-20} moveY={20} durationX={13} />
+        <Cursor color="#8b5cf6" name="Shantanu" x="20%" y="25%" delay={2.0} img="/assets/1.webp" moveX={40} moveY={-20} durationX={15} />
+        <Cursor color="#f59e0b" name="Ayush" x="15%" y="65%" delay={0.8} img="/assets/2.webp" moveX={-40} moveY={-30} durationY={16} />
+        <Cursor color="#06b6d4" name="Batit" x="40%" y="75%" delay={1.5} img="/assets/6.webp" moveX={20} moveY={-40} durationX={11} />
       </div>
 
       <motion.div
@@ -443,9 +441,11 @@ const Hero = () => {
             </svg>
           </span>
         </h1>
+
         <p className="text-[var(--color-text-primary)]/60 dark:text-slate-400 text-lg sm:text-xl leading-relaxed max-w-xl font-medium mb-10">
           Crafting aesthetic, code-driven digital gifts for the people you cherish most.
         </p>
+
         <div className="flex items-center gap-4 pointer-events-auto">
           <Link
             to="/store"
@@ -490,7 +490,7 @@ const services = [
     title: "Celebrate Milestones",
     description: "Create unforgettable digital memories for your anniversaries. From timeline journeys to interactive memory books, make every year count.",
     icon: <Heart className="w-6 h-6 text-[var(--color-accent-pink)]" />,
-    image: "/assets/anniversary.png",
+    image: "/assets/anniversary.webp",
     align: "right",
   },
   {
@@ -498,7 +498,7 @@ const services = [
     title: "Best Friends Forever",
     description: "Because standard cards are boring. Build a custom 'Squad Goals' gallery or a hilarious inside-joke compilation for your best friend.",
     icon: <Users className="w-6 h-6 text-[var(--color-accent-purple)]" />,
-    image: "/assets/friend.png",
+    image: "/assets/friend.webp",
     align: "left",
   },
   {
@@ -506,7 +506,7 @@ const services = [
     title: "Apologies & Surprises",
     description: "Messed up? Say sorry with a cute, interactive page. Or just send a '100 Reasons Why I Love You' site to brighten their day randomly.",
     icon: <Sparkles className="w-6 h-6 text-[var(--color-accent-mint)]" />,
-    image: "/assets/apology.png",
+    image: "/assets/apology.webp",
     align: "right",
   },
 ];
@@ -676,7 +676,7 @@ const IntegrationsSection = () => {
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
             transition={{ repeat: Infinity, ease: "linear", duration: 35 }}
-            className="flex gap-4 sm:gap-6 w-max md:will-change-transform"
+            className="flex gap-4 sm:gap-6 w-max transform-gpu will-change-transform"
           >
             {row1.map((brand, i) => (
               <div key={`r1-${i}`} className="w-16 h-16 sm:w-24 sm:h-24 shrink-0 bg-white rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl cursor-pointer">
@@ -696,7 +696,7 @@ const IntegrationsSection = () => {
           <motion.div
             animate={{ x: ["-50%", "0%"] }}
             transition={{ repeat: Infinity, ease: "linear", duration: 45 }}
-            className="flex gap-4 sm:gap-6 w-max md:will-change-transform"
+            className="flex gap-4 sm:gap-6 w-max transform-gpu will-change-transform"
           >
             {row2.map((brand, i) => (
               <div key={`r2-${i}`} className="w-16 h-16 sm:w-24 sm:h-24 shrink-0 bg-white rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl cursor-pointer">
@@ -722,14 +722,9 @@ const ProductSkeleton = () => (
       <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-slate-300 dark:bg-slate-700 w-12 h-4 sm:w-16 sm:h-5 rounded-full z-20 shadow-sm border border-transparent"></div>
     </div>
     <div className="p-3.5 sm:p-5 flex-1 flex flex-col justify-start bg-white dark:bg-slate-900 z-20 relative sm:border-t border-l sm:border-l-0 border-black/5 dark:border-slate-800">
-      {/* Category line height locked */}
       <div className="h-3 sm:h-3.5 w-16 sm:w-20 bg-slate-200 dark:bg-slate-800 rounded mb-1 sm:mb-2" />
-      
-      {/* Title line height locked (2 lines mobile, 1 line desktop) */}
       <div className="h-8 sm:h-7 w-full bg-slate-200 dark:bg-slate-800 rounded mb-3 sm:mb-4" />
-      
       <div className="flex flex-col xl:flex-row gap-1.5 sm:gap-2 mt-auto pt-2">
-        {/* Buttons height locked */}
         <div className="h-[34px] sm:h-[42px] w-full bg-slate-200 dark:bg-slate-800 rounded-lg sm:rounded-xl" />
         <div className="h-[34px] sm:h-[42px] w-full bg-slate-200 dark:bg-slate-800 rounded-lg sm:rounded-xl" />
       </div>
@@ -796,11 +791,15 @@ const ProductCard = ({ product }: { product: ProductItem }) => {
         {videoId ? (
           <>
             <img
-              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+              src={`https://i.ytimg.com/vi_webp/${videoId}/hqdefault.webp`}
               alt={product.title}
               loading="lazy"
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover transform-gpu group-hover:scale-105 transition-transform duration-500 z-0"
+              onError={(e) => {
+                // Fallback to maxres if webp fails
+                (e.currentTarget as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+              }}
             />
             <AnimatePresence>
               {isHovered && (
@@ -828,7 +827,6 @@ const ProductCard = ({ product }: { product: ProductItem }) => {
             {product.emoji}
           </div>
         )}
-
         {product.tag && (
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/95 dark:bg-slate-900/90 backdrop-blur-sm text-slate-900 dark:text-white text-[8px] sm:text-[10px] font-bold px-2 sm:px-3 py-1 rounded-full z-30 shadow-sm border border-black/5 uppercase tracking-wider">
             {product.tag}
@@ -852,13 +850,13 @@ const ProductCard = ({ product }: { product: ProductItem }) => {
               onClick={handleReadyWebsiteOrder}
               className="h-[34px] sm:h-[42px] w-full bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-400 hover:bg-cyan-500 hover:text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-cyan-100 dark:border-cyan-900 shadow-sm"
             >
-              <Book className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Ready (₹{product.ready_price})
+              <Book className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Ready (₹ {product.ready_price})
             </button>
             <button
               onClick={handleGetCode}
               className="h-[34px] sm:h-[42px] w-full bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400 hover:bg-[var(--color-accent-purple)] hover:text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-purple-100 dark:border-purple-900 shadow-sm"
             >
-              <Code className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Code (₹{product.code_price})
+              <Code className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Code (₹ {product.code_price})
             </button>
           </div>
         </div>
@@ -883,7 +881,6 @@ const BundlePage = () => {
           .select("*")
           .eq("id", Number(id))
           .single();
-
         if (error) throw error;
         if (data) setBundle(data);
       } catch (err) {
@@ -949,7 +946,7 @@ const BundlePage = () => {
               <div className="text-[5rem] sm:text-[7rem] drop-shadow-xl flex items-center justify-center gap-2 sm:gap-4 z-10 transition-transform duration-500 group-hover:scale-105">
                  {emojis.map((emoji: string, idx: number) => (
                     <span key={idx} className={idx > 0 && emojis.length > 2 ? "-ml-4 sm:-ml-8" : ""}>{emoji}</span>
-                  ))}
+                 ))}
               </div>
 
               {bundle.tag && (
@@ -998,27 +995,29 @@ const BundlePage = () => {
                     </span>
                   )}
                   <span className="text-4xl font-black text-[var(--color-text-primary)] leading-none">
-                    ₹{bundle.price}
+                     {bundle.price}
                   </span>
-                </div>
-                
-                <button
-                  onClick={() => addToCart({
-                    id: bundle.id + 10000,
-                    title: bundle.title,
-                    price: numericPrice,
-                    priceType: "code",
-                    gradient: bundle.gradient || "from-slate-900 to-slate-950",
-                    emoji: <Gift className="w-5 h-5 text-white" />,
-                  })}
-                  className="w-full sm:w-auto py-4 px-8 bg-[var(--color-text-primary)] hover:bg-[var(--color-accent-purple)] text-white dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <ShoppingCart className="w-5 h-5" /> Add Bundle to Cart
-                </button>
+               </div>
+               
+               <button
+                 onClick={() => addToCart({
+                   id: bundle.id + 10000,
+                   title: bundle.title,
+                   price: numericPrice,
+                   priceType: "code",
+                   gradient: bundle.gradient || "from-slate-900 to-slate-950",
+                   emoji: <Gift className="w-5 h-5 text-white" />,
+                 })}
+                 className="w-full sm:w-auto py-4 px-8 bg-[var(--color-text-primary)] hover:bg-[var(--color-accent-purple)] text-white dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+               >
+                 <ShoppingCart className="w-5 h-5" /> Add Bundle to Cart
+               </button>
             </div>
+
           </div>
 
         </div>
+
       </div>
     </div>
   );
@@ -1041,7 +1040,6 @@ const ProductPage = () => {
           .select("*")
           .eq("id", Number(id))
           .single();
-
         if (error) throw error;
         if (data) {
           setProduct({
@@ -1065,7 +1063,6 @@ const ProductPage = () => {
         setLoading(false);
       }
     };
-
     if (id) fetchProduct();
   }, [id]);
 
@@ -1092,13 +1089,10 @@ const ProductPage = () => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
-    if (match && match[2].length === 11) {
-      return {
-        videoId: match[2],
-        embedUrl: `https://www.youtube.com/embed/${match[2]}?rel=0`
-      };
-    }
-    return null;
+    return match && match[2].length === 11 ? {
+      videoId: match[2],
+      embedUrl: `https://www.youtube.com/embed/${match[2]}?rel=0`
+    } : null;
   };
 
   const embedDetails = getEmbedDetails(product.youtube_url);
@@ -1128,13 +1122,16 @@ const ProductPage = () => {
                   />
                 ) : (
                   <div 
-                    className="relative w-full h-full cursor-pointer group" 
+                    className="relative w-full h-full cursor-pointer group"
                     onClick={() => setIsPlaying(true)}
                   >
                     <img 
-                      src={`https://img.youtube.com/vi/${embedDetails.videoId}/maxresdefault.jpg`} 
-                      alt="Video Thumbnail" 
+                      src={`https://i.ytimg.com/vi_webp/${embedDetails.videoId}/hqdefault.webp`}
+                      alt="Video Thumbnail"
                       className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = `https://img.youtube.com/vi/${embedDetails.videoId}/maxresdefault.jpg`;
+                      }}
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors duration-300">
                       <div className="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg transform transition-transform duration-300 group-hover:scale-110">
@@ -1170,9 +1167,11 @@ const ProductPage = () => {
                 {product.tag}
               </span>
             )}
+            
             <h1 className="text-3xl sm:text-4xl font-bold font-serif text-[var(--color-text-primary)] mb-4">
               {product.title}
             </h1>
+
             <p className="text-[var(--color-text-primary)]/75 text-sm sm:text-base leading-relaxed mb-8">
               A beautifully crafted {product.category.toLowerCase()} website template featuring smooth animations, interactive elements, and a responsive design to make your special person smile.
             </p>
@@ -1203,7 +1202,7 @@ const ProductPage = () => {
                 <div className="flex items-center gap-2 text-[var(--color-text-primary)] font-bold mb-2">
                   <Book className="w-4 h-4 text-cyan-500" /> Ready Website
                 </div>
-                <div className="text-3xl font-black text-[var(--color-text-primary)] mb-4">₹{product.ready_price}</div>
+                <div className="text-3xl font-black text-[var(--color-text-primary)] mb-4">₹ {product.ready_price}</div>
                 <div className="bg-blue-50/50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 rounded-lg p-2.5 mb-4">
                   <p className="text-[10px] sm:text-xs text-blue-700 dark:text-blue-300 font-medium leading-tight">
                     <span className="font-bold mr-1">✨</span>
@@ -1236,7 +1235,7 @@ const ProductPage = () => {
                 <div className="flex items-center gap-2 text-[var(--color-text-primary)] font-bold mb-2">
                   <Code className="w-4 h-4 text-[var(--color-accent-purple)]" /> Premium Code
                 </div>
-                <div className="text-3xl font-black text-[var(--color-text-primary)] mb-4">₹{product.code_price}</div>
+                <div className="text-3xl font-black text-[var(--color-text-primary)] mb-4">₹ {product.code_price}</div>
                 <div className="bg-amber-50/50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900 rounded-lg p-2.5 mb-4">
                   <p className="text-[10px] sm:text-xs text-amber-700 dark:text-amber-300 font-medium leading-tight">
                     <span className="font-bold mr-1">💻</span>
@@ -1273,55 +1272,17 @@ const ProductPage = () => {
   );
 };
 
+// HIGH PERFORMANCE: Reuses globalProducts and isCatalogLoading to eliminate duplicate DB requests
 const PopularProducts = () => {
-  const [products, setProducts] = useState<ProductItem[]>([]);
+  const { globalProducts, isCatalogLoading } = useAppContext();
   const [activeCategory, setActiveCategory] = useState("All");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCatalog = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("is_hidden", false)
-          .order("id", { ascending: true });
-
-        if (error) throw error;
-        if (data) {
-          const formatted: ProductItem[] = data.map((item) => ({
-            id: item.id,
-            category: item.category,
-            title: item.title,
-            code_price: item.code_price,
-            ready_price: item.ready_price,
-            original_price: item.original_price,
-            rating: item.rating || "5.0",
-            gradient: item.gradient || "from-pink-200 to-rose-100",
-            tag: item.tag,
-            youtube_url: item.youtube_url,
-            file_url: item.file_url,
-            emoji: getProductIcon(item.icon_name),
-          }));
-          setProducts(formatted);
-        }
-      } catch (err) {
-        console.error("Error fetching templates from Supabase:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCatalog();
-  }, []);
 
   const filteredProducts =
     activeCategory === "All"
-      ? products
-      : products.filter((p) => p.category.toLowerCase() === activeCategory.toLowerCase());
+      ? globalProducts
+      : globalProducts.filter((p) => p.category.toLowerCase() === activeCategory.toLowerCase());
 
-  const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
+  const categories = ["All", ...Array.from(new Set(globalProducts.map((p) => p.category)))];
 
   return (
     <div
@@ -1341,7 +1302,7 @@ const PopularProducts = () => {
           </h2>
         </div>
 
-        {/* Desktop Categories (Scrollable/Clickable Tags) */}
+        {/* Desktop Categories */}
         <div className="hidden sm:flex bg-[var(--color-bg-primary)] dark:bg-slate-950 p-1.5 rounded-full border border-[var(--color-bg-secondary)] dark:border-slate-800 overflow-x-auto custom-scrollbar max-w-full xl:max-w-xl">
           {categories.map((cat) => (
             <button
@@ -1358,7 +1319,7 @@ const PopularProducts = () => {
           ))}
         </div>
 
-        {/* Mobile Categories (Native Dropdown Menu) */}
+        {/* Mobile Categories */}
         <div className="sm:hidden relative w-full mt-4">
           <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
             <ChevronDown className="w-5 h-5 text-[var(--color-text-primary)]/50" />
@@ -1377,7 +1338,7 @@ const PopularProducts = () => {
         </div>
       </div>
 
-      {loading ? (
+      {isCatalogLoading ? (
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start gap-4 sm:gap-6 lg:gap-8 w-full">
           {Array.from({ length: 8 }).map((_, i) => (
             <ProductSkeleton key={`skeleton-${i}`} />
@@ -1422,22 +1383,19 @@ const PlaceholderReview = () => (
 );
 
 const ReviewSkeletonRow = ({ reverse = false }: { reverse?: boolean }) => {
-  // Use an array of varying widths to perfectly mimic the organic, 
-  // different sizes of your actual WhatsApp screenshots.
   const organicWidths = [320, 260, 380, 290, 350, 400]; 
-
   return (
     <div className="flex whitespace-nowrap">
       <motion.div
         animate={{ x: reverse ? ["-50%", "0%"] : ["0%", "-50%"] }}
         transition={{ repeat: Infinity, ease: "linear", duration: reverse ? 60 : 50 }}
-        className="flex gap-6 sm:gap-10 px-3 sm:px-5"
+        className="flex gap-6 sm:gap-10 px-3 sm:px-5 transform-gpu will-change-transform"
       >
         {[...organicWidths, ...organicWidths].map((w, i) => (
           <div 
             key={i} 
             className="h-[180px] sm:h-[260px] shrink-0 bg-slate-100 dark:bg-slate-900/50 rounded-3xl sm:rounded-[2.5rem] border border-black/5 dark:border-white/5 relative overflow-hidden"
-            style={{ width: `${w}px` }} // Applies the organic width
+            style={{ width: `${w}px` }}
           >
             <motion.div 
               animate={{ opacity: [0.3, 0.6, 0.3] }}
@@ -1451,8 +1409,6 @@ const ReviewSkeletonRow = ({ reverse = false }: { reverse?: boolean }) => {
   );
 };
 
-// ... (Keep the rest of your imports and AppContext hooks)
-
 const Testimonials = () => {
   const [reviewImages, setReviewImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1463,9 +1419,7 @@ const Testimonials = () => {
       try {
         setIsLoading(true);
         const { data, error } = await supabase.storage.from('reviews').list();
-
         if (error) throw error;
-
         if (data) {
           const urls = data
             .filter(file => file.name !== '.emptyFolderPlaceholder')
@@ -1483,7 +1437,6 @@ const Testimonials = () => {
         setIsLoading(false);
       }
     };
-
     fetchReviewScreenshots();
   }, []);
 
@@ -1502,7 +1455,6 @@ const Testimonials = () => {
 
   return (
     <div id="reviews" className="relative w-full py-24 sm:py-32 overflow-hidden bg-white dark:bg-[#050505] transition-colors duration-500">
-      
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div 
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, -30, 0] }}
@@ -1558,7 +1510,6 @@ const Testimonials = () => {
       <div className="absolute right-0 bottom-0 top-1/3 w-20 sm:w-48 bg-gradient-to-l from-white to-transparent dark:from-[#050505] dark:to-transparent z-30 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col gap-6 sm:gap-10 transform -rotate-3 scale-110 origin-center my-10">
-        
         {isLoading ? (
           <>
             <ReviewSkeletonRow />
@@ -1576,10 +1527,9 @@ const Testimonials = () => {
                 <motion.div
                   animate={{ x: ["0%", "-50%"] }}
                   transition={{ repeat: Infinity, ease: "linear", duration: 50 }}
-                  className="flex gap-6 sm:gap-10 px-3 sm:px-5"
+                  className="flex gap-6 sm:gap-10 px-3 sm:px-5 transform-gpu will-change-transform"
                 >
                   {[...row1Images, ...row1Images].map((url, i) => (
-                    // Removed hover scaling class for scroll performance
                     <div key={`r1-${i}`} onClick={() => setSelectedImage(url)} className="h-[180px] sm:h-[260px] w-max shrink-0 cursor-zoom-in">
                       <img src={url} alt="Review Screenshot" className="h-full w-auto object-contain rounded-3xl sm:rounded-[2.5rem] shadow-xl shadow-black/10 dark:shadow-black/40 border border-black/5 dark:border-white/5" loading="lazy" />
                     </div>
@@ -1593,10 +1543,9 @@ const Testimonials = () => {
                 <motion.div
                   animate={{ x: ["-50%", "0%"] }}
                   transition={{ repeat: Infinity, ease: "linear", duration: 60 }}
-                  className="flex gap-6 sm:gap-10 px-3 sm:px-5"
+                  className="flex gap-6 sm:gap-10 px-3 sm:px-5 transform-gpu will-change-transform"
                 >
                   {[...row2Images, ...row2Images].map((url, i) => (
-                    // Removed hover scaling class for scroll performance
                     <div key={`r2-${i}`} onClick={() => setSelectedImage(url)} className="h-[180px] sm:h-[260px] w-max shrink-0 cursor-zoom-in">
                       <img src={url} alt="Review Screenshot" className="h-full w-auto object-contain rounded-3xl sm:rounded-[2.5rem] shadow-xl shadow-black/10 dark:shadow-black/40 border border-black/5 dark:border-white/5" loading="lazy" />
                     </div>
@@ -1610,10 +1559,9 @@ const Testimonials = () => {
                 <motion.div
                   animate={{ x: ["0%", "-50%"] }}
                   transition={{ repeat: Infinity, ease: "linear", duration: 45 }}
-                  className="flex gap-6 sm:gap-10 px-3 sm:px-5"
+                  className="flex gap-6 sm:gap-10 px-3 sm:px-5 transform-gpu will-change-transform"
                 >
                   {[...row3Images, ...row3Images].map((url, i) => (
-                    // Removed hover scaling class for scroll performance
                     <div key={`r3-${i}`} onClick={() => setSelectedImage(url)} className="h-[180px] sm:h-[260px] w-max shrink-0 cursor-zoom-in">
                       <img src={url} alt="Review Screenshot" className="h-full w-auto object-contain rounded-3xl sm:rounded-[2.5rem] shadow-xl shadow-black/10 dark:shadow-black/40 border border-black/5 dark:border-white/5" loading="lazy" />
                     </div>
@@ -1688,11 +1636,10 @@ const PromoBanners = () => (
             Request Now <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </MagneticButton>
         </div>
-
         <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center pointer-events-none">
           <div className="w-32 h-32 sm:w-64 sm:h-64 bg-[var(--color-bg-primary)]/50 dark:bg-slate-800 rounded-full absolute top-1/2 -translate-y-1/2 -right-5 sm:-right-10 blur-xl sm:blur-2xl"></div>
           <img 
-            src="/assets/custom.png" 
+            src="/assets/custom.webp" 
             alt="Custom Template Request" 
             loading="lazy"
             decoding="async"
@@ -1729,11 +1676,10 @@ const PromoBanners = () => (
             View FAQ <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </MagneticButton>
         </div>
-
         <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center pointer-events-none">
           <div className="w-32 h-32 sm:w-64 sm:h-64 bg-[var(--color-bg-primary)]/60 dark:bg-slate-800 rounded-full absolute top-1/2 -translate-y-1/2 -right-5 sm:-right-10 blur-xl sm:blur-2xl"></div>
           <img 
-            src="/assets/admin.png" 
+            src="/assets/admin.webp" 
             alt="Support Admin" 
             loading="lazy"
             decoding="async"
@@ -1811,6 +1757,7 @@ const ContactSection = () => {
             <p className="text-sm font-bold text-[var(--color-text-primary)]">canvasbuildsofficial@gmail.com</p>
           </div>
         </div>
+
         <div className="flex flex-col items-center text-center gap-3">
           <div className="w-12 h-12 rounded-full border border-[var(--color-bg-secondary)] dark:border-slate-800 flex items-center justify-center text-[var(--color-text-primary)]/60 dark:text-slate-400">
             <Clock className="w-5 h-5" />
@@ -1820,6 +1767,7 @@ const ContactSection = () => {
             <p className="text-sm font-bold text-[var(--color-text-primary)]">5 hours</p>
           </div>
         </div>
+
         <div className="flex flex-col items-center text-center gap-3">
           <div className="w-12 h-12 rounded-full border border-[var(--color-bg-secondary)] dark:border-slate-800 flex items-center justify-center text-[var(--color-text-primary)]/60 dark:text-slate-400">
             <MapPin className="w-5 h-5" />
@@ -1845,6 +1793,7 @@ const ContactSection = () => {
               className="w-full bg-[var(--color-bg-primary)]/30 dark:bg-slate-950 border border-[var(--color-bg-secondary)] dark:border-slate-800 rounded-xl px-4 py-3.5 text-sm text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent-pink)] transition-colors"
             />
           </div>
+
           <div>
             <label className="block text-sm font-bold text-[var(--color-text-primary)] mb-2">
               Your email
@@ -1857,6 +1806,7 @@ const ContactSection = () => {
               className="w-full bg-[var(--color-bg-primary)]/30 dark:bg-slate-950 border border-[var(--color-bg-secondary)] dark:border-slate-800 rounded-xl px-4 py-3.5 text-sm text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent-pink)] transition-colors"
             />
           </div>
+
           <div>
             <label className="block text-sm font-bold text-[var(--color-text-primary)] mb-2">
               What's on your mind?
@@ -2007,13 +1957,10 @@ const ReviewsPage = () => {
     };
 
     setReviewsList([newReview, ...reviewsList]);
-    
     setRole("");
     setText("");
     setRating(5);
-    
     if (!user) setName("");
-    
     addToast("Thank you! Your review has been added.", "success");
   };
 
@@ -2099,6 +2046,7 @@ const ReviewsPage = () => {
                   className="w-full bg-[var(--color-bg-primary)]/50 dark:bg-slate-800 border border-[var(--color-bg-secondary)] dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent-pink)] transition-colors"
                 />
               </div>
+
               <div>
                 <label className="block text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-1.5">
                   What did you buy? / Role
@@ -2235,11 +2183,10 @@ const AboutPage = () => (
           <div className="w-48 h-48 sm:w-56 sm:h-56 bg-white/60 dark:bg-slate-800 rounded-full absolute top-1/2 -translate-y-1/2 right-4 blur-2xl pointer-events-none"></div>
           
           <img 
-            src="/assets/dev.png" 
+            src="/assets/dev.webp" 
             alt="Adarsh Representation" 
             loading="lazy"
             decoding="async"
-            // Added lg:translate-x-[5px] right after lg:right-[-12rem]
             className="absolute bottom-[-1rem] lg:bottom-[-3rem] right-[-9rem] lg:right-[-13rem] lg:translate-x-[5px] h-[340px] sm:h-[400px] lg:h-[115%] w-auto max-w-none object-contain object-bottom drop-shadow-2xl z-10 pointer-events-none"
           />
           
@@ -2258,11 +2205,8 @@ const Footer = () => {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-
-  // DPDP Consent State
   const [hasConsent, setHasConsent] = useState(false);
 
-  // Auto-fill email and check subscription status when user logs in
   useEffect(() => {
     const checkSubscription = async () => {
       if (user && user.email) {
@@ -2270,7 +2214,6 @@ const Footer = () => {
         setEmail(user.email);
         
         try {
-          // Check if the user's email exists in the subscribers table
           const { data } = await supabase
             .from("subscribers")
             .select("id")
@@ -2289,7 +2232,6 @@ const Footer = () => {
         setIsChecking(false);
       }
     };
-
     checkSubscription();
   }, [user]);
 
@@ -2300,7 +2242,6 @@ const Footer = () => {
       return;
     }
     
-    // DPDP Consent Validation
     if (!hasConsent) {
       addToast("Please consent to the privacy policy to subscribe.", "info");
       return;
@@ -2324,7 +2265,7 @@ const Footer = () => {
           setIsSubscribed(true);
         } else {
           setEmail("");
-          setHasConsent(false); // Reset consent
+          setHasConsent(false);
         }
       }
     } catch (err) {
@@ -2335,9 +2276,7 @@ const Footer = () => {
 
   const handleUnsubscribe = async () => {
     if (!user?.email) return;
-
     try {
-      // Calls the secure Postgres RPC function we created earlier
       const { error } = await supabase.rpc("unsubscribe_user", {
         target_email: user.email
       });
@@ -2363,7 +2302,6 @@ const Footer = () => {
       className="bg-[#073127] dark:bg-slate-950 border-t border-black/10 pt-12 pb-12 transition-colors"
     >
       <div className="max-w-[1400px] mx-auto px-6">
-        {/* Newsletter Subscription Box */}
         <div className="bg-[#273e3d] rounded-[2rem] p-8 sm:p-10 border border-white/10 mb-16 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl">
           <div className="lg:w-1/2 text-left">
             <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white mb-2">
@@ -2407,7 +2345,6 @@ const Footer = () => {
                     Subscribe
                   </button>
                 </div>
-                {/* DPDP Consent Checkbox */}
                 <div className="flex items-start gap-2 mt-1">
                   <input
                     type="checkbox"
@@ -2425,7 +2362,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Existing Footer Links Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16 border-b border-white/10">
           <div className="md:col-span-4 flex flex-col gap-4 text-left items-start">
             <div 
@@ -2490,6 +2426,7 @@ const Footer = () => {
                 Reviews
               </button>
             </div>
+
             <div className="flex flex-col gap-3">
               <h4 className="font-bold text-white text-xs uppercase tracking-widest mb-1">
                 Company
@@ -2504,6 +2441,7 @@ const Footer = () => {
                 Earn with us
               </a>
             </div>
+
             <div className="flex flex-col gap-3">
               <h4 className="font-bold text-white text-xs uppercase tracking-widest mb-1">
                 Support
@@ -2518,6 +2456,7 @@ const Footer = () => {
                 Privacy Policy
               </button>
             </div>
+
             <div className="flex flex-col gap-3">
               <h4 className="font-bold text-white text-xs uppercase tracking-widest mb-1">
                 Resources
@@ -2578,6 +2517,7 @@ const ScrollHandler = () => {
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
+
   return (
     <div className="pt-32 pb-20 min-h-[70vh] flex flex-col items-center justify-center px-4 bg-[var(--color-bg-primary)]">
       <div className="text-center">
@@ -2617,7 +2557,6 @@ export default function App() {
           <AnimatePresence>
             {isSearchOpen && <SearchModal />}
           </AnimatePresence>
-
           <LegalModal />
           <AIAssistant />
           
