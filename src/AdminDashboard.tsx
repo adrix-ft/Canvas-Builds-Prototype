@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Package, Layers, Users, Mail, LogOut, 
-  Trash2, Loader2, Edit2, X, ShieldAlert, Plus, Search, Reply, Send, CheckSquare, Square, EyeOff, Upload, ArrowUpRight,
-  ShoppingCart, DollarSign, CheckCircle, Clock, TrendingUp, PieChart, Sparkles, UserCheck, RefreshCw, BarChart3
+  Trash2, Loader2, Edit2, X, ShieldAlert, Plus, Search, Reply, Send, CheckSquare, Square, EyeOff, Upload,
+  ShoppingCart, DollarSign, CheckCircle, TrendingUp, Sparkles, UserCheck, RefreshCw, Tag, Download
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { useAppContext } from './AppContext';
@@ -48,8 +48,8 @@ const AnalyticsChart = ({ orders }: { orders: any[] }) => {
     const maxVal = Math.max(...bucketValues, metric === 'revenue' ? 500 : 5);
 
     const points = bucketValues.map((val, i) => {
-      const x = (i / (days - 1)) * 460 + 20; // 20px padding left/right
-      const y = 140 - ((val / maxVal) * 110); // scale within 160px height
+      const x = (i / (days - 1)) * 460 + 20; 
+      const y = 140 - ((val / maxVal) * 110); 
       return { x, y, val, label: bucketLabels[i] };
     });
 
@@ -118,7 +118,6 @@ const AnalyticsChart = ({ orders }: { orders: any[] }) => {
       </div>
 
       <div className="relative w-full h-44 mt-auto rounded-2xl bg-gradient-to-b from-slate-50/50 to-transparent dark:from-slate-950/40 border border-black/5 dark:border-white/5 overflow-hidden">
-        {/* Subtle grid lines */}
         <div className="absolute inset-0 flex flex-col justify-between py-3 opacity-10 pointer-events-none">
           <div className="border-t border-black dark:border-white w-full"></div>
           <div className="border-t border-black dark:border-white w-full"></div>
@@ -183,13 +182,18 @@ const AnalyticsChart = ({ orders }: { orders: any[] }) => {
 export const AdminDashboard = () => {
   const { addToast, user, isAdmin, setIsAuthOpen, handleLogout } = useAppContext();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'bundles' | 'subscribers' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'bundles' | 'promos' | 'subscribers' | 'messages'>('overview');
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Pagination States
+  const [orderLimit, setOrderLimit] = useState(50);
+  const [subscriberLimit, setSubscriberLimit] = useState(50);
 
   // Data States
   const [products, setProducts] = useState<any[]>([]);
   const [bundles, setBundles] = useState<any[]>([]);
+  const [promos, setPromos] = useState<any[]>([]);
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
@@ -199,34 +203,56 @@ export const AdminDashboard = () => {
   // Modal & Form States
   const [showProductModal, setShowProductModal] = useState(false);
   const [showBundleModal, setShowBundleModal] = useState(false);
+  const [showPromoModal, setShowPromoModal] = useState(false);
   const [replyState, setReplyState] = useState<{ id: number, email: string, name: string, message: string } | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
 
   const defaultProduct = { id: null, category: 'Special', title: '', code_price: 0, ready_price: 0, original_price: 0, rating: '5.0', icon_name: 'Heart', gradient: 'from-pink-200 to-rose-100', tag: '', youtube_url: '', file_url: '', zip_filename: '', is_hidden: false };
   const defaultBundle = { id: null, title: '', description: '', price: '', original_price: '', tag: '', gradient: 'from-slate-900 to-slate-950', included_items: '[]', emoji_list: '["🎁"]', is_hidden: false };
+  const defaultPromo = { id: null, code: '', discount_percentage: 10, max_uses: 100, is_active: true };
   
   const [productForm, setProductForm] = useState<any>(defaultProduct);
   const [bundleForm, setBundleForm] = useState<any>(defaultBundle);
+  const [promoForm, setPromoForm] = useState<any>(defaultPromo);
+
+  // Real-time Listeners
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase.channel('admin_dashboard_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+        addToast("Order database updated!", "info");
+        fetchAllData();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        addToast("New support message received!", "info");
+        fetchAllData();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin, orderLimit, subscriberLimit]);
 
   useEffect(() => {
     if (isAdmin) fetchAllData();
-  }, [isAdmin]);
+  }, [isAdmin, orderLimit, subscriberLimit]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      const [prodRes, bundRes, subRes, msgRes, storageRes, ordersRes] = await Promise.all([
+      const [prodRes, bundRes, promoRes, subRes, msgRes, storageRes, ordersRes] = await Promise.all([
         supabase.from('products').select('*').order('id', { ascending: true }),
         supabase.from('bundles').select('*').order('id', { ascending: true }),
-        supabase.from('subscribers').select('*').order('created_at', { ascending: false }),
+        supabase.from('promo_codes').select('*').order('created_at', { ascending: false }),
+        supabase.from('subscribers').select('*').order('created_at', { ascending: false }).limit(subscriberLimit),
         supabase.from('messages').select('*').order('created_at', { ascending: false }),
         supabase.storage.from('templates').list(),
-        supabase.from('orders').select('*').order('created_at', { ascending: false })
+        supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(orderLimit)
       ]);
 
       if (prodRes.data) setProducts(prodRes.data);
       if (bundRes.data) setBundles(bundRes.data);
+      if (promoRes.data) setPromos(promoRes.data);
       if (subRes.data) setSubscribers(subRes.data);
       if (msgRes.data) setMessages(msgRes.data);
       if (ordersRes.data) setOrders(ordersRes.data);
@@ -244,30 +270,61 @@ export const AdminDashboard = () => {
 
   const filteredData = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    if (!q) return { products, bundles, subscribers, messages, orders };
+    if (!q) return { products, bundles, promos, subscribers, messages, orders };
     return {
       products: products.filter(p => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)),
       bundles: bundles.filter(b => b.title.toLowerCase().includes(q)),
+      promos: promos.filter(p => p.code.toLowerCase().includes(q)),
       subscribers: subscribers.filter(s => s.email.toLowerCase().includes(q)),
       messages: messages.filter(m => m.name.toLowerCase().includes(q) || m.email?.toLowerCase().includes(q) || m.message.toLowerCase().includes(q)),
       orders: orders.filter(o => o.customer_email?.toLowerCase().includes(q) || o.id?.toLowerCase().includes(q))
     };
-  }, [searchQuery, products, bundles, subscribers, messages, orders]);
+  }, [searchQuery, products, bundles, promos, subscribers, messages, orders]);
 
-  // Comprehensive Real-time Analytics Calculations
+  // CSV Export Helper
+  const handleExportCSV = (data: any[], filename: string) => {
+    if (!data || !data.length) {
+      addToast("No data available to export.", "info");
+      return;
+    }
+    const headers = Object.keys(data[0]).join(',');
+    const rows = data.map(row => 
+      Object.values(row).map(val => `"${String(val || '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    
+    const csvContent = `${headers}\n${rows}`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const updateFulfillmentStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase.from('orders').update({ fulfillment_status: newStatus }).eq('id', orderId);
+      if (error) throw error;
+      addToast("Fulfillment status updated!", "success");
+      setOrders(orders.map(o => o.id === orderId ? { ...o, fulfillment_status: newStatus } : o));
+    } catch (err: any) {
+      addToast(`Error updating status: ${err.message}`, "info");
+    }
+  };
+
   const analytics = useMemo(() => {
     const paidOrders = orders.filter(o => o.status === 'paid');
     const totalRev = paidOrders.reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
     const aov = paidOrders.length > 0 ? Math.round(totalRev / paidOrders.length) : 0;
     const conversionRate = orders.length > 0 ? Math.round((paidOrders.length / orders.length) * 100) : 0;
     
-    // Unique Customers across orders and messages
     const customerSet = new Set([
       ...orders.map(o => o.customer_email).filter(Boolean),
       ...messages.map(m => m.email).filter(Boolean)
     ]);
 
-    // Service vs Code Format Split
     let codeCount = 0;
     let readyCount = 0;
     paidOrders.forEach(o => {
@@ -279,23 +336,12 @@ export const AdminDashboard = () => {
       }
     });
 
-    // Category Distribution
     const catMap: Record<string, number> = {};
     products.forEach(p => {
       catMap[p.category] = (catMap[p.category] || 0) + 1;
     });
 
-    return {
-      totalRev,
-      paidCount: paidOrders.length,
-      pendingCount: orders.length - paidOrders.length,
-      aov,
-      conversionRate,
-      uniqueCustomers: customerSet.size,
-      codeCount,
-      readyCount,
-      catMap
-    };
+    return { totalRev, paidCount: paidOrders.length, pendingCount: orders.length - paidOrders.length, aov, conversionRate, uniqueCustomers: customerSet.size, codeCount, readyCount, catMap };
   }, [orders, products, messages]);
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -325,6 +371,37 @@ export const AdminDashboard = () => {
       if (error) throw error;
       setProducts(products.filter(p => p.id !== id));
       addToast("Product deleted", "success");
+    } catch (err: any) { addToast(`Error: ${err.message}`, "info"); }
+  };
+
+  const handleSavePromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = { ...promoForm };
+      delete payload.id;
+      delete payload.created_at;
+      
+      payload.code = payload.code.toUpperCase().replace(/\s+/g, '');
+
+      let res;
+      if (promoForm.id) {
+        res = await supabase.from('promo_codes').update(payload).eq('id', promoForm.id).select();
+      } else {
+        res = await supabase.from('promo_codes').insert([payload]).select();
+      }
+      if (res.error) throw res.error;
+      addToast(`Promo Code ${promoForm.id ? 'updated' : 'added'}!`, "success");
+      setShowPromoModal(false);
+      fetchAllData();
+    } catch (err: any) { addToast(`Error: ${err.message}`, "info"); }
+  };
+
+  const deletePromo = async (id: number) => {
+    if (!window.confirm("Delete this promo code?")) return;
+    try {
+      await supabase.from('promo_codes').delete().eq('id', id);
+      setPromos(promos.filter(p => p.id !== id));
+      addToast("Promo deleted", "success");
     } catch (err: any) { addToast(`Error: ${err.message}`, "info"); }
   };
 
@@ -483,6 +560,7 @@ export const AdminDashboard = () => {
             { id: 'orders', icon: ShoppingCart, label: 'Orders', badge: orders.length },
             { id: 'products', icon: Package, label: 'Products', badge: products.length },
             { id: 'bundles', icon: Layers, label: 'Bundles', badge: bundles.length },
+            { id: 'promos', icon: Tag, label: 'Promo Codes', badge: promos.length },
             { id: 'subscribers', icon: Users, label: 'Subscribers', badge: subscribers.length },
             { id: 'messages', icon: Mail, label: 'Messages', badge: messages.length }
           ].map((tab) => (
@@ -542,6 +620,18 @@ export const AdminDashboard = () => {
                   className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-950 border border-black/10 dark:border-white/10 rounded-xl text-xs outline-none focus:border-[var(--color-accent-mint)] transition-colors"
                 />
               </div>
+
+              {/* Action Buttons based on Active Tab */}
+              {activeTab === 'orders' && (
+                <button onClick={() => handleExportCSV(orders, `orders_export_${new Date().toISOString()}.csv`)} className="bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <Download className="w-4 h-4" /> Export CSV
+                </button>
+              )}
+              {activeTab === 'subscribers' && (
+                <button onClick={() => handleExportCSV(subscribers, `subscribers_export_${new Date().toISOString()}.csv`)} className="bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <Download className="w-4 h-4" /> Export CSV
+                </button>
+              )}
               {activeTab === 'products' && (
                 <button onClick={() => { setProductForm(defaultProduct); setShowProductModal(true); }} className="bg-[var(--color-text-primary)] text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-[var(--color-accent-mint)] transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
                   <Plus className="w-4 h-4" /> Add Template
@@ -550,6 +640,11 @@ export const AdminDashboard = () => {
               {activeTab === 'bundles' && (
                 <button onClick={() => { setBundleForm(defaultBundle); setShowBundleModal(true); }} className="bg-[var(--color-text-primary)] text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-[var(--color-accent-mint)] transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
                   <Plus className="w-4 h-4" /> Add Bundle
+                </button>
+              )}
+              {activeTab === 'promos' && (
+                <button onClick={() => { setPromoForm(defaultPromo); setShowPromoModal(true); }} className="bg-[var(--color-text-primary)] text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-[var(--color-accent-purple)] transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <Plus className="w-4 h-4" /> Add Promo
                 </button>
               )}
             </div>
@@ -699,24 +794,82 @@ export const AdminDashboard = () => {
               <motion.div variants={containerVariants} initial="hidden" animate="show" exit={{ opacity: 0 }} key="orders" className="space-y-3">
                 <div className="grid grid-cols-12 gap-4 pb-3 border-b border-black/5 dark:border-white/5 text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3">
                   <div className="col-span-3 sm:col-span-2">Order ID</div>
-                  <div className="col-span-5 sm:col-span-4">Customer Email</div>
+                  <div className="col-span-4 sm:col-span-3">Customer Email</div>
                   <div className="hidden sm:block sm:col-span-2">Date</div>
-                  <div className="col-span-4 sm:col-span-2">Status</div>
-                  <div className="hidden sm:block sm:col-span-2 text-right">Amount</div>
+                  <div className="col-span-3 sm:col-span-2">Payment</div>
+                  <div className="col-span-2 sm:col-span-3">Fulfillment Workflow</div>
                 </div>
                 {filteredData.orders.map(o => (
                   <motion.div variants={itemVariants} key={o.id} className="grid grid-cols-12 gap-4 items-center p-3.5 rounded-xl bg-white dark:bg-slate-950 border border-black/5 dark:border-white/5 text-xs hover:border-[var(--color-accent-purple)]/40 transition-colors">
                     <div className="col-span-3 sm:col-span-2 font-mono font-bold text-slate-400 truncate">{o.id?.split('-')[0]}</div>
-                    <div className="col-span-5 sm:col-span-4 font-bold truncate pr-2">{o.customer_email}</div>
+                    <div className="col-span-4 sm:col-span-3 font-bold truncate pr-2">{o.customer_email}</div>
                     <div className="hidden sm:block sm:col-span-2 text-slate-400 font-mono">{new Date(o.created_at).toLocaleDateString()}</div>
-                    <div className="col-span-4 sm:col-span-2">
+                    <div className="col-span-3 sm:col-span-2 flex items-center gap-2">
                       {o.status === 'paid' ? (
-                        <span className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Paid</span>
+                        <span className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Paid (₹{o.total_amount})</span>
                       ) : (
                         <span className="bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Pending</span>
                       )}
                     </div>
-                    <div className="hidden sm:block sm:col-span-2 text-right font-mono font-black text-sm">₹{o.total_amount}</div>
+                    {/* New Fulfillment Workflow Dropdown */}
+                    <div className="col-span-2 sm:col-span-3">
+                      <select 
+                        value={o.fulfillment_status || 'pending'} 
+                        onChange={(e) => updateFulfillmentStatus(o.id, e.target.value)}
+                        className={`w-full p-2 border border-black/10 dark:border-white/10 rounded-lg text-xs font-bold outline-none cursor-pointer ${
+                          o.fulfillment_status === 'delivered' ? 'bg-emerald-50 text-emerald-700' :
+                          o.fulfillment_status === 'building' ? 'bg-blue-50 text-blue-700' :
+                          'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                        }`}
+                      >
+                        <option value="pending">🟡 Pending Setup</option>
+                        <option value="building">🔵 Building Site</option>
+                        <option value="delivered">🟢 Delivered</option>
+                      </select>
+                    </div>
+                  </motion.div>
+                ))}
+                {orders.length >= orderLimit && (
+                  <div className="pt-4 text-center">
+                    <button onClick={() => setOrderLimit(orderLimit + 50)} className="text-[var(--color-accent-purple)] font-bold text-xs hover:underline cursor-pointer">
+                      Load More Orders...
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* PROMO CODES TAB */}
+            {activeTab === 'promos' && (
+              <motion.div variants={containerVariants} initial="hidden" animate="show" exit={{ opacity: 0 }} key="promos" className="space-y-3">
+                <div className="grid grid-cols-12 gap-4 pb-3 border-b border-black/5 dark:border-white/5 text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3">
+                  <div className="col-span-4 sm:col-span-3">Promo Code</div>
+                  <div className="col-span-3 sm:col-span-3">Discount</div>
+                  <div className="col-span-3 sm:col-span-3">Usage Limit</div>
+                  <div className="hidden sm:block sm:col-span-2">Status</div>
+                  <div className="col-span-2 sm:col-span-1 text-right">Actions</div>
+                </div>
+                {filteredData.promos.map(p => (
+                  <motion.div variants={itemVariants} key={p.id} className={`grid grid-cols-12 gap-4 items-center p-3 rounded-xl bg-white dark:bg-slate-950 border border-black/5 dark:border-white/5 text-xs hover:shadow-sm transition-all ${!p.is_active ? 'opacity-60' : ''}`}>
+                    <div className="col-span-4 sm:col-span-3 font-mono font-bold text-lg text-[var(--color-accent-purple)]">{p.code}</div>
+                    <div className="col-span-3 sm:col-span-3 font-bold text-emerald-600">{p.discount_percentage}% OFF</div>
+                    <div className="col-span-3 sm:col-span-3 font-mono">
+                      {p.current_uses} / {p.max_uses} used
+                      <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(p.current_uses / p.max_uses) * 100}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="hidden sm:block sm:col-span-2">
+                      {p.is_active ? (
+                        <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> Active</span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1"><EyeOff className="w-3 h-3"/> Disabled</span>
+                      )}
+                    </div>
+                    <div className="col-span-2 sm:col-span-1 flex justify-end gap-1">
+                      <button onClick={() => { setPromoForm(p); setShowPromoModal(true); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-blue-500 cursor-pointer"><Edit2 className="w-3.5 h-3.5"/></button>
+                      <button onClick={() => deletePromo(p.id)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-rose-500 cursor-pointer"><Trash2 className="w-3.5 h-3.5"/></button>
+                    </div>
                   </motion.div>
                 ))}
               </motion.div>
@@ -780,7 +933,7 @@ export const AdminDashboard = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-6 shrink-0">
-                        <span className="font-mono font-black text-sm">{b.price}</span>
+                        <span className="font-mono font-black text-sm">₹{b.price}</span>
                         <div className="flex items-center gap-1">
                           <button onClick={() => { setBundleForm({ ...b, included_items: JSON.stringify(b.included_items), emoji_list: JSON.stringify(b.emoji_list, null, 2) }); setShowBundleModal(true); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-blue-500 cursor-pointer"><Edit2 className="w-4 h-4"/></button>
                           <button onClick={() => deleteBundle(b.id)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-rose-500 cursor-pointer"><Trash2 className="w-4 h-4"/></button>
@@ -811,6 +964,13 @@ export const AdminDashboard = () => {
                     </button>
                   </motion.div>
                 ))}
+                {subscribers.length >= subscriberLimit && (
+                  <div className="pt-4 text-center">
+                    <button onClick={() => setSubscriberLimit(subscriberLimit + 50)} className="text-[var(--color-accent-purple)] font-bold text-xs hover:underline cursor-pointer">
+                      Load More Subscribers...
+                    </button>
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -885,8 +1045,43 @@ export const AdminDashboard = () => {
         )}
       </main>
 
-      {/* PRODUCT MODAL */}
+      {/* PROMO MODAL */}
       <AnimatePresence>
+        {showPromoModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl border border-white/10">
+              <div className="p-5 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+                <h3 className="font-serif font-bold text-lg">{promoForm.id ? 'Edit Promo Code' : 'New Promo Code'}</h3>
+                <button onClick={() => setShowPromoModal(false)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"><X className="w-4 h-4"/></button>
+              </div>
+              <form onSubmit={handleSavePromo} className="p-6 flex flex-col gap-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Promo Code (e.g. FESTIVAL20)</label>
+                  <input required type="text" className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-black/10 dark:border-white/10 rounded-xl outline-none uppercase font-mono" value={promoForm.code} onChange={e => setPromoForm({...promoForm, code: e.target.value.toUpperCase()})} />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Discount Percentage (%)</label>
+                  <input required type="number" min="1" max="100" className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-black/10 dark:border-white/10 rounded-xl outline-none" value={promoForm.discount_percentage} onChange={e => setPromoForm({...promoForm, discount_percentage: Number(e.target.value)})} />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Max Uses Allowed</label>
+                  <input required type="number" min="1" className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-black/10 dark:border-white/10 rounded-xl outline-none" value={promoForm.max_uses} onChange={e => setPromoForm({...promoForm, max_uses: Number(e.target.value)})} />
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <input type="checkbox" id="activePromo" className="rounded" checked={promoForm.is_active || false} onChange={e => setPromoForm({...promoForm, is_active: e.target.checked})} />
+                  <label htmlFor="activePromo" className="font-bold cursor-pointer">Code is currently Active</label>
+                </div>
+                <div className="pt-4">
+                  <button type="submit" className="w-full bg-[var(--color-accent-purple)] text-white py-3 rounded-xl font-bold hover:bg-[#6b46c1] transition-colors cursor-pointer">
+                    Save Promo Code
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* PRODUCT MODAL */}
         {showProductModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-white/10">

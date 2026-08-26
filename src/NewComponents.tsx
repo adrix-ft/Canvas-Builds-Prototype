@@ -86,7 +86,39 @@ export const CartDrawer = () => {
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
 
-  const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
+  // Promo Code States
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string, discount: number } | null>(null);
+  const [promoStatus, setPromoStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
+  const [promoMsg, setPromoMsg] = useState("");
+
+  const rawSubtotal = cart.reduce((acc, item) => acc + item.price, 0);
+  const discountAmount = appliedPromo ? Math.round(rawSubtotal * (appliedPromo.discount / 100)) : 0;
+  const finalTotal = rawSubtotal - discountAmount;
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setPromoStatus("loading");
+    try {
+      const { data, error } = await supabase
+        .from("promo_codes")
+        .select("*")
+        .eq("code", promoInput.toUpperCase())
+        .eq("is_active", true)
+        .single();
+      
+      if (error || !data) throw new Error("Invalid or expired code.");
+      if (data.current_uses >= data.max_uses) throw new Error("Promo code usage limit reached.");
+      
+      setAppliedPromo({ code: data.code, discount: data.discount_percentage });
+      setPromoStatus("success");
+      setPromoMsg(`Awesome! ${data.discount_percentage}% OFF applied.`);
+    } catch (err: any) {
+      setPromoStatus("error");
+      setPromoMsg(err.message || "Invalid code");
+      setAppliedPromo(null);
+    }
+  };
 
   const initiateCheckout = () => {
     if (user && user.email) {
@@ -107,8 +139,6 @@ export const CartDrawer = () => {
 
   const processPayment = async (checkoutEmail: string) => {
     setIsCheckingOut(true);
-    
-    // 1. Load Razorpay SDK
     const isSdkLoaded = await loadRazorpayScript();
     if (!isSdkLoaded) {
       addToast("Razorpay SDK failed to load. Check your internet connection.", "info");
@@ -117,14 +147,14 @@ export const CartDrawer = () => {
     }
 
     try {
-      // 2. Call our Node.js Backend to create the order
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           items: cart, 
           customerEmail: checkoutEmail,
-          userId: user?.id || null 
+          userId: user?.id || null,
+          promoCode: appliedPromo?.code || null 
         }),
       });
       
@@ -133,9 +163,8 @@ export const CartDrawer = () => {
         throw new Error(data.error || "Backend unavailable or waking up. Please try again.");
       }
 
-      // 3. Open Razorpay Checkout Modal
       const options = {
-        key: (import.meta as any).env.VITE_RAZORPAY_KEY_ID, // Your public Razorpay key
+        key: (import.meta as any).env.VITE_RAZORPAY_KEY_ID, 
         amount: data.amount,
         currency: "INR",
         name: "Canvas Builds",
@@ -143,7 +172,6 @@ export const CartDrawer = () => {
         order_id: data.orderId,
         handler: async function (response: any) {
           try {
-            // Send payment details to backend for instant verification
             const verifyRes = await fetch("/api/verify-payment", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -162,9 +190,10 @@ export const CartDrawer = () => {
             setShowGuestModal(false);
             setIsCheckingOut(false);
             setCheckoutConsent(false);
+            setAppliedPromo(null);
+            setPromoInput("");
             addToast("Payment successful! Your order is ready.", "success");
             
-            // Route guests home, and registered users to the dashboard
             if (user) {
               navigate('/account');
             } else {
@@ -177,18 +206,9 @@ export const CartDrawer = () => {
             addToast(`Payment verification failed: ${err.message}`, "info");
           }
         },
-        prefill: {
-          email: checkoutEmail,
-        },
-        theme: {
-          color: "#8b5cf6" 
-        },
-        modal: {
-          ondismiss: function() {
-            // Stop the loading spinner if the user closes the payment window
-            setIsCheckingOut(false);
-          }
-        }
+        prefill: { email: checkoutEmail },
+        theme: { color: "#8b5cf6" },
+        modal: { ondismiss: function() { setIsCheckingOut(false); } }
       };
 
       const rzp = new (window as any).Razorpay(options);
@@ -200,18 +220,11 @@ export const CartDrawer = () => {
 
     } catch (err: any) {
       console.error("RAZORPAY ERROR:", err);
-      
-      // 1. Show user notification
       addToast("Payment gateway is currently busy. Connecting to WhatsApp support...", "info");
 
-      // 2. Prepare order summary for WhatsApp
-      const orderDetails = cart
-        .map((item) => `• ${item.title} (${item.priceType === 'ready' ? 'Ready Website' : 'Premium Code'} - ₹${item.price})`)
-        .join("%0A");
+      const orderDetails = cart.map((item) => `• ${item.title} (${item.priceType === 'ready' ? 'Ready Website' : 'Premium Code'} - ₹${item.price})`).join("%0A");
+      const waText = `Hi! I want to complete my order:%0A%0A${orderDetails}%0A%0ATotal: *₹${finalTotal.toLocaleString('en-IN')}*%0A%0AMy Email: ${checkoutEmail}${appliedPromo ? `%0A%0APromo Code Used: *${appliedPromo.code}*` : ""}`;
       
-      const waText = `Hi! I want to complete my order:%0A%0A${orderDetails}%0A%0ATotal: *₹${subtotal.toLocaleString('en-IN')}*%0A%0AMy Email: ${checkoutEmail}`;
-      
-      // 3. Open WhatsApp backup
       window.open(`https://wa.me/917906568743?text=${waText}`, "_blank");
       
       setIsCheckingOut(false);
@@ -219,6 +232,7 @@ export const CartDrawer = () => {
       setIsCartOpen(false);
       setShowGuestModal(false);
       setCheckoutConsent(false);
+      setAppliedPromo(null);
     }
   };
 
@@ -243,7 +257,7 @@ export const CartDrawer = () => {
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-[var(--color-bg-primary)] z-[101] shadow-2xl flex flex-col border-l border-[var(--color-bg-secondary)] dark:border-slate-800"
           >
-            {/* --- GUEST CHECKOUT MODAL OVERLAY --- */}
+            {/* GUEST MODAL */}
             <AnimatePresence>
               {showGuestModal && (
                 <motion.div 
@@ -290,7 +304,6 @@ export const CartDrawer = () => {
               )}
             </AnimatePresence>
 
-            {/* --- STANDARD CART UI --- */}
             <div className="p-6 border-b border-[var(--color-bg-secondary)]/50 dark:border-slate-800 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
               <div>
                 <h2 className="text-2xl font-serif font-bold text-[var(--color-text-primary)] flex items-center gap-2">
@@ -317,60 +330,111 @@ export const CartDrawer = () => {
                   <p className="text-sm">Explore our catalog and add a template!</p>
                 </div>
               ) : (
-                cart.map((item, index) => (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    key={index}
-                    className="flex gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-[var(--color-bg-secondary)]/40 dark:border-slate-800 items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-xl shrink-0 text-white shadow-inner`}
-                      >
-                        {React.isValidElement(item.emoji) ? item.emoji : <Gift className="w-6 h-6 text-white" />}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="font-bold text-[var(--color-text-primary)] text-sm truncate">
-                          {item.title}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${item.priceType === 'ready' ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'}`}>
-                            {item.priceType === 'ready' ? 'Ready Website' : 'Source Code'}
-                          </span>
-                          <span className="text-sm font-black text-[var(--color-accent-purple)] dark:text-purple-300">
-                            ₹{item.price}
-                          </span>
+                <>
+                  {cart.map((item, index) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      key={index}
+                      className="flex gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-[var(--color-bg-secondary)]/40 dark:border-slate-800 items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-xl shrink-0 text-white shadow-inner`}
+                        >
+                          {React.isValidElement(item.emoji) ? item.emoji : <Gift className="w-6 h-6 text-white" />}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-[var(--color-text-primary)] text-sm truncate">
+                            {item.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${item.priceType === 'ready' ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'}`}>
+                              {item.priceType === 'ready' ? 'Ready Website' : 'Source Code'}
+                            </span>
+                            <span className="text-sm font-black text-[var(--color-accent-purple)] dark:text-purple-300">
+                              ₹{item.price}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() => removeFromCart(index)}
-                      className="w-8 h-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-full flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-                      title="Remove item"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </motion.div>
-                ))
+                      <button
+                        onClick={() => removeFromCart(index)}
+                        className="w-8 h-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-full flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+                        title="Remove item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </motion.div>
+                  ))}
+
+                  {/* Promo Code Input Area */}
+                  <div className="mt-4 pt-4 border-t border-[var(--color-bg-secondary)] dark:border-slate-800">
+                    <p className="text-[10px] font-bold text-[var(--color-text-primary)]/50 uppercase tracking-widest mb-2">Have a promo code?</p>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Enter code" 
+                        value={promoInput}
+                        onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                        disabled={appliedPromo !== null}
+                        className="flex-1 bg-white dark:bg-slate-900 border border-[var(--color-bg-secondary)] dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent-purple)] shadow-sm uppercase font-mono"
+                      />
+                      {appliedPromo ? (
+                        <button 
+                          onClick={() => { setAppliedPromo(null); setPromoInput(""); setPromoMsg(""); setPromoStatus("idle"); }}
+                          className="px-4 py-2.5 bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400 rounded-xl font-bold text-xs cursor-pointer border border-rose-100 dark:border-rose-800"
+                        >
+                          Remove
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={handleApplyPromo}
+                          disabled={!promoInput.trim() || promoStatus === "loading"}
+                          className="px-4 py-2.5 bg-[var(--color-bg-secondary)] dark:bg-slate-800 text-[var(--color-text-primary)] rounded-xl font-bold text-xs cursor-pointer hover:bg-[var(--color-text-primary)] hover:text-white transition-colors disabled:opacity-50"
+                        >
+                          {promoStatus === "loading" ? "..." : "Apply"}
+                        </button>
+                      )}
+                    </div>
+                    {promoMsg && (
+                      <p className={`text-xs mt-2 font-bold ${promoStatus === "success" ? "text-emerald-500" : "text-rose-500"}`}>
+                        {promoMsg}
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
             {cart.length > 0 && (
               <div className="p-6 bg-white dark:bg-slate-900 border-t border-[var(--color-bg-secondary)]/50 dark:border-slate-800 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-[var(--color-text-primary)]/70 font-bold uppercase tracking-wider text-xs">
-                    Subtotal ({cart.length} item{cart.length > 1 ? "s" : ""})
-                  </span>
-                  <span className="text-2xl font-black text-[var(--color-text-primary)]">
-                    ₹{subtotal.toLocaleString("en-IN")}
-                  </span>
+                
+                {/* Billing Summary */}
+                <div className="space-y-2 mb-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-[var(--color-text-primary)]/60 font-medium">Subtotal</span>
+                    <span className="font-bold">₹{rawSubtotal.toLocaleString("en-IN")}</span>
+                  </div>
+                  {appliedPromo && (
+                    <div className="flex justify-between items-center text-sm text-emerald-500">
+                      <span className="font-bold">Discount ({appliedPromo.discount}%)</span>
+                      <span className="font-bold">-₹{discountAmount.toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2 border-t border-[var(--color-bg-secondary)] dark:border-slate-800">
+                    <span className="text-[var(--color-text-primary)]/70 font-bold uppercase tracking-wider text-xs">
+                      Total Due
+                    </span>
+                    <span className="text-2xl font-black text-[var(--color-text-primary)]">
+                      ₹{finalTotal.toLocaleString("en-IN")}
+                    </span>
+                  </div>
                 </div>
                 
-                {/* LEGAL CONSENT & 18+ CHECKBOX */}
                 <div className="flex items-start gap-3 p-3 sm:p-4 bg-[var(--color-bg-primary)]/50 dark:bg-slate-950/50 rounded-xl border border-[var(--color-bg-secondary)] dark:border-slate-800">
                   <input
                     type="checkbox"
@@ -384,7 +448,6 @@ export const CartDrawer = () => {
                   </label>
                 </div>
 
-                {/* Live Razorpay Checkout Button */}
                 <button
                   onClick={initiateCheckout}
                   disabled={isCheckingOut || !checkoutConsent}
@@ -393,7 +456,6 @@ export const CartDrawer = () => {
                   <Check className="w-5 h-5" /> Proceed to Checkout
                 </button>
 
-                {/* REFUND POLICY DISCLAIMER */}
                 <p className="text-[10px] text-center text-[var(--color-text-primary)]/50 font-medium">
                   🔒 As this is a digital product, all sales are final. No refunds.
                 </p>

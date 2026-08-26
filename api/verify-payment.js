@@ -2,20 +2,9 @@ import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, 
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD,
-  },
-});
+// 1. Declare empty variables at the top
+let supabase;
+let transporter;
 
 async function deliverOrder(order) {
   const downloadLinks = [];
@@ -280,6 +269,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  // 2. "Lazy Initialize" inside the handler!
+  if (!supabase) {
+    supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+  }
+  
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, 
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASSWORD,
+      },
+    });
+  }
+
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
@@ -301,6 +310,17 @@ export default async function handler(req, res) {
       .single();
 
     if (error || !order) throw new Error("Order not found in database");
+
+    if (order.applied_promo_code) {
+      try {
+        const { data: promo } = await supabase.from('promo_codes').select('current_uses').eq('code', order.applied_promo_code).single();
+        if (promo) {
+          await supabase.from('promo_codes').update({ current_uses: promo.current_uses + 1 }).eq('code', order.applied_promo_code);
+        }
+      } catch (err) {
+        console.error('Failed to increment promo use:', err);
+      }
+    }
 
     try {
       await deliverOrder(order);
