@@ -196,9 +196,25 @@ export const CartDrawer = () => {
       rzp.open();
 
     } catch (err: any) {
-      console.error("RAZORPAY CRASH REASON:", err);
+      console.error("RAZORPAY ERROR:", err);
+      
+      // 1. Show user notification
+      addToast("Payment gateway is currently busy. Connecting to WhatsApp support...", "info");
+
+      // 2. Prepare order summary for WhatsApp
+      const orderDetails = cart
+        .map((item) => `• ${item.title} (${item.priceType === 'ready' ? 'Ready Website' : 'Premium Code'} - ₹${item.price})`)
+        .join("%0A");
+      
+      const waText = `Hi! I want to complete my order:%0A%0A${orderDetails}%0A%0ATotal: *₹${subtotal.toLocaleString('en-IN')}*%0A%0AMy Email: ${checkoutEmail}`;
+      
+      // 3. Open WhatsApp backup
+      window.open(`https://wa.me/917906568743?text=${waText}`, "_blank");
+      
       setIsCheckingOut(false);
-      addToast(`Checkout Error: ${err.message}`, "info");
+      clearCart();
+      setIsCartOpen(false);
+      setShowGuestModal(false);
     }
   };
 
