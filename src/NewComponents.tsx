@@ -13,7 +13,8 @@ import {
   Search,
   Headphones,
   Mail,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 import { useAppContext } from "./AppContext";
 import { supabase } from "./supabaseClient";
@@ -80,6 +81,7 @@ export const CartDrawer = () => {
   const navigate = useNavigate();
 
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [checkoutConsent, setCheckoutConsent] = useState(false);
   
   // Guest Checkout States
@@ -174,6 +176,10 @@ export const CartDrawer = () => {
         description: "Digital Template Purchase",
         order_id: data.orderId,
         handler: async function (response: any) {
+          
+          setIsVerifying(true); 
+          setIsCheckingOut(false); 
+
           try {
             const verifyRes = await fetch("/api/verify-payment", {
               method: "POST",
@@ -188,14 +194,13 @@ export const CartDrawer = () => {
             const verifyData = await verifyRes.json();
             if (!verifyData.success) throw new Error(verifyData.error);
 
-            // Check if cart has a ready website
             const hasReadyWebsite = cart.some(item => item.priceType === 'ready');
             const firstReadyItem = cart.find(item => item.priceType === 'ready');
 
             clearCart();
+            setIsVerifying(false); 
             setIsCartOpen(false);
             setShowGuestModal(false);
-            setIsCheckingOut(false);
             setCheckoutConsent(false);
             setAppliedPromo(null);
             setPromoInput("");
@@ -220,7 +225,7 @@ export const CartDrawer = () => {
             }
           } catch (err: any) {
             console.error("Verification failed:", err);
-            setIsCheckingOut(false);
+            setIsVerifying(false);
             addToast(`Payment verification failed: ${err.message}`, "info");
           }
         },
@@ -265,8 +270,10 @@ export const CartDrawer = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
             onClick={() => {
-              setIsCartOpen(false);
-              setShowGuestModal(false);
+              if (!isVerifying) {
+                setIsCartOpen(false);
+                setShowGuestModal(false);
+              }
             }}
           />
           <motion.div
@@ -274,11 +281,36 @@ export const CartDrawer = () => {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            /* FIX: Removed the 'relative' keyword below */
             className="fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-[var(--color-bg-primary)] z-[101] shadow-2xl flex flex-col border-l border-[var(--color-bg-secondary)] dark:border-slate-800"
           >
+            
+            {/* POST-PAYMENT VERIFICATION OVERLAY */}
+            <AnimatePresence>
+              {isVerifying && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-[200] bg-[var(--color-bg-primary)]/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center"
+                >
+                  <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-2xl mb-6 border border-[var(--color-bg-secondary)] dark:border-slate-700 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[var(--color-accent-purple)]/10 animate-pulse"></div>
+                    <Loader2 className="w-10 h-10 text-[var(--color-accent-purple)] animate-spin relative z-10" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-bold text-[var(--color-text-primary)] mb-3">
+                    Verifying Payment
+                  </h3>
+                  <p className="text-sm text-[var(--color-text-primary)]/60 font-medium leading-relaxed max-w-[280px]">
+                    Please don't close this window.<br/>We are securely confirming your transaction and preparing your files.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* GUEST MODAL */}
             <AnimatePresence>
-              {showGuestModal && (
+              {showGuestModal && !isVerifying && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -317,8 +349,16 @@ export const CartDrawer = () => {
                       disabled={isCheckingOut}
                       className="w-full bg-[var(--color-accent-purple)] hover:bg-[#6b46c1] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all disabled:opacity-50 cursor-pointer"
                     >
-                      {isCheckingOut ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Continue to Payment"}
-                      {!isCheckingOut && <ArrowRight className="w-4 h-4" />}
+                      {isCheckingOut ? (
+                        <>
+                           <Loader2 className="w-5 h-5 animate-spin" />
+                           Securely connecting...
+                        </>
+                      ) : (
+                         <>
+                            Continue to Payment <ArrowRight className="w-4 h-4" />
+                         </>
+                      )}
                     </button>
                   </form>
                 </motion.div>
@@ -336,7 +376,9 @@ export const CartDrawer = () => {
                 </p>
               </div>
               <button
-                onClick={() => setIsCartOpen(false)}
+                onClick={() => {
+                  if (!isVerifying) setIsCartOpen(false);
+                }}
                 className="w-8 h-8 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-[var(--color-bg-secondary)] dark:hover:bg-slate-700 transition-colors cursor-pointer text-[var(--color-text-primary)]"
               >
                 <X className="w-5 h-5" />
@@ -473,7 +515,16 @@ export const CartDrawer = () => {
                   disabled={isCheckingOut || !checkoutConsent}
                   className="w-full bg-[var(--color-text-primary)] text-white dark:bg-slate-800 dark:hover:bg-[var(--color-accent-pink)] hover:bg-[var(--color-accent-purple)] py-4 rounded-xl font-bold transition-all hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none cursor-pointer"
                 >
-                  <Check className="w-5 h-5" /> Proceed to Checkout
+                  {isCheckingOut ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Securely connecting...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5" /> Proceed to Checkout
+                    </>
+                  )}
                 </button>
                 <p className="text-[10px] text-center text-[var(--color-text-primary)]/50 font-medium">
                     As this is a digital product, all sales are final. No refunds.

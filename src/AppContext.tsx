@@ -34,8 +34,6 @@ interface AppContextType {
   legalModal: "privacy" | "terms" | null;
   setLegalModal: (type: "privacy" | "terms" | null) => void;
   clearCart: () => void;
-  
-  // NEW: Global Pre-fetched Catalog Data
   globalProducts: any[];
   globalBundles: any[];
   isCatalogLoading: boolean;
@@ -86,20 +84,30 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setIsCatalogLoading(false);
       }
     };
-
     prefetchCatalog();
   }, []);
 
   useEffect(() => {
-    const verifyAdminStatus = (session: Session | null) => {
-      if (session?.access_token) {
-        try {
-          const decodedJwt = jwtDecode<any>(session.access_token);
-          setIsAdmin(decodedJwt.user_role === 'admin');
-        } catch (err) {
+    const verifyAdminStatus = async (session: Session | null) => {
+      if (!session?.user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      // Query the user_roles table directly 
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (data && (data.role === 'admin' || data.user_role === 'admin')) {
+          setIsAdmin(true);
+        } else {
           setIsAdmin(false);
         }
-      } else {
+      } catch (err) {
         setIsAdmin(false);
       }
     };
