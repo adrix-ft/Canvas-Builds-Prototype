@@ -199,6 +199,7 @@ const Navbar = () => {
                 Canvas<span className="text-[var(--color-accent-mint)]">Builds</span>
               </span>
             </Link>
+
             <div className="hidden lg:flex items-center gap-8">
               {[
                 { name: "Home", path: "/" },
@@ -219,6 +220,7 @@ const Navbar = () => {
                 </Link>
               ))}
             </div>
+
             <div className="flex items-center gap-1 sm:gap-2">
               {isAdmin && (
                 <Link 
@@ -241,6 +243,7 @@ const Navbar = () => {
               >
                 <Search className="w-5 h-5" />
               </button>
+
               <button
                 onClick={() => setIsCartOpen(true)}
                 className="relative hover:bg-[var(--color-bg-secondary)] p-2 sm:p-2.5 rounded-full transition-colors text-[var(--color-text-primary)]/80 cursor-pointer"
@@ -309,6 +312,7 @@ const Navbar = () => {
                   </span>
                 </div>
               </div>
+
               <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-3">
                 <div
                   onClick={() => {
@@ -325,6 +329,7 @@ const Navbar = () => {
                     className="bg-transparent border-none outline-none w-full text-[var(--color-text-primary)] text-[15px] cursor-pointer pointer-events-none"
                   />
                 </div>
+
                 {[
                   { name: "Home", path: "/" },
                   { name: "Templates", path: "/store" },
@@ -349,6 +354,7 @@ const Navbar = () => {
                   </motion.div>
                 ))}
               </div>
+
               <div className="p-4 border-t border-[var(--color-bg-secondary)]/50 flex flex-col gap-3">
                 {isAdmin && (
                   <Link 
@@ -401,11 +407,12 @@ const Hero = () => {
     <div className="relative overflow-hidden min-h-[90dvh] flex flex-col items-center justify-center w-full pt-28 bg-[var(--color-bg-primary)]">
       <div 
          className="absolute inset-0 z-0 bg-blueprint-grid opacity-100 pointer-events-none"
-         style={{
+         style={{ 
            maskImage: 'radial-gradient(ellipse 80% 60% at 50% 45%, black 20%, transparent 100%)',
            WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 45%, black 20%, transparent 100%)'
          }}
       ></div>
+
       <div className="absolute inset-0 max-w-[1200px] mx-auto z-10 pointer-events-none">
         <Cursor color="#10b981" name="Adarsh" x="65%" y="15%" delay={0.2} img="/assets/3.png" moveX={30} moveY={40} durationX={14} />
         <Cursor color="#ec4899" name="Akshara" x="75%" y="20%" delay={1.2} img="/assets/5.png" moveX={-30} moveY={30} durationX={12} />
@@ -427,6 +434,7 @@ const Hero = () => {
             Create a website in minutes
           </span>
         </div>
+
         <h1 className="text-6xl sm:text-8xl font-extrabold text-[var(--color-text-primary)] tracking-tight leading-[1.1] mb-6 drop-shadow-sm">
           Canvas<span className="relative inline-block ml-3">
             <span className="relative z-10 text-[var(--color-accent-mint)]">Builds</span>
@@ -455,7 +463,7 @@ const Hero = () => {
         className="w-full max-w-5xl mx-auto px-6 mt-24 relative z-20 flex flex-col sm:flex-row items-center justify-between gap-8 pt-8 border-t border-[var(--color-text-primary)]/5 pointer-events-none"
       >
         <p className="text-sm font-bold text-[var(--color-text-primary)]/40 uppercase tracking-widest text-center sm:text-left">
-          More than 10,000+ <br/> happy users
+          Crafted for memorable <br/> digital celebrations
         </p>
         <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap opacity-40 grayscale">
           <div className="flex items-center gap-2 font-bold text-xl text-[var(--color-text-primary)]">
@@ -820,6 +828,7 @@ const ProductCard = ({ product }: { product: ProductItem }) => {
             {product.emoji}
           </div>
         )}
+
         {product.tag && (
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/95 dark:bg-slate-900/90 backdrop-blur-sm text-slate-900 dark:text-white text-[8px] sm:text-[10px] font-bold px-2 sm:px-3 py-1 rounded-full z-30 shadow-sm border border-black/5 uppercase tracking-wider">
             {product.tag}
@@ -883,7 +892,6 @@ const BundlePage = () => {
         setLoading(false);
       }
     };
-
     if (id) fetchBundle();
   }, [id]);
 
@@ -924,8 +932,8 @@ const BundlePage = () => {
     <div className="pt-28 pb-24 min-h-screen bg-[var(--color-bg-primary)] relative overflow-hidden w-full">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        <button
-           onClick={() => navigate(-1)}
+        <button 
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]/75 hover:text-[var(--color-text-primary)] transition-colors mb-10 font-bold cursor-pointer w-fit"
         >
           <ChevronRight className="w-4 h-4 rotate-180" />
@@ -990,7 +998,7 @@ const BundlePage = () => {
                     </span>
                   )}
                   <span className="text-4xl font-black text-[var(--color-text-primary)] leading-none">
-                    {bundle.price}
+                    ₹{bundle.price}
                   </span>
                 </div>
                 
@@ -1009,6 +1017,7 @@ const BundlePage = () => {
                 </button>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -1097,8 +1106,8 @@ const ProductPage = () => {
   return (
     <div className="pt-28 pb-20 min-h-screen bg-[var(--color-bg-primary)] w-full">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-        <button
-           onClick={() => navigate(-1)}
+        <button 
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]/75 hover:text-[var(--color-accent-pink)] transition-colors mb-8 font-medium cursor-pointer"
         >
           <ChevronRight className="w-4 h-4 rotate-180" />
@@ -1141,8 +1150,8 @@ const ProductPage = () => {
               )}
             </div>
 
-            <button
-               onClick={() => {
+            <button 
+              onClick={() => {
                 if (product.file_url) {
                   window.open(product.file_url, "_blank");
                 } else {
@@ -1189,6 +1198,7 @@ const ProductPage = () => {
 
             <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-6">Choose Your Option</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
               <div className="border border-[var(--color-bg-secondary)] bg-white dark:bg-slate-900 rounded-2xl p-5 flex flex-col shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                 <div className="flex items-center gap-2 text-[var(--color-text-primary)] font-bold mb-2">
                   <Book className="w-4 h-4 text-cyan-500" /> Ready Website
@@ -1254,6 +1264,7 @@ const ProductPage = () => {
                   Add to Cart
                 </button>
               </div>
+
             </div>
           </div>
         </div>
@@ -1301,6 +1312,7 @@ const PopularProducts = () => {
         setLoading(false);
       }
     };
+
     fetchCatalog();
   }, []);
 
@@ -1408,11 +1420,12 @@ const PlaceholderReview = () => (
     </span>
   </div>
 );
+
 const ReviewSkeletonRow = ({ reverse = false }: { reverse?: boolean }) => {
   // Use an array of varying widths to perfectly mimic the organic, 
   // different sizes of your actual WhatsApp screenshots.
   const organicWidths = [320, 260, 380, 290, 350, 400]; 
-  
+
   return (
     <div className="flex whitespace-nowrap">
       <motion.div
@@ -1450,6 +1463,7 @@ const Testimonials = () => {
       try {
         setIsLoading(true);
         const { data, error } = await supabase.storage.from('reviews').list();
+
         if (error) throw error;
 
         if (data) {
@@ -1461,7 +1475,6 @@ const Testimonials = () => {
                 .getPublicUrl(file.name);
               return publicUrlData.publicUrl;
             });
-
           setReviewImages(urls);
         }
       } catch (err) {
@@ -1675,6 +1688,7 @@ const PromoBanners = () => (
             Request Now <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </MagneticButton>
         </div>
+
         <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center pointer-events-none">
           <div className="w-32 h-32 sm:w-64 sm:h-64 bg-[var(--color-bg-primary)]/50 dark:bg-slate-800 rounded-full absolute top-1/2 -translate-y-1/2 -right-5 sm:-right-10 blur-xl sm:blur-2xl"></div>
           <img 
@@ -1706,7 +1720,7 @@ const PromoBanners = () => (
             Works
           </h3>
           <p className="text-[var(--color-text-primary)]/75 text-[10px] sm:text-sm mb-4 sm:mb-8 max-w-[200px] sm:max-w-[240px] font-medium leading-relaxed hidden sm:block">
-            1. Choose your template • 2. Download the code or let us deploy • 3. Share with your special person!
+            1. Choose your template <br/> 2. Download the code or let us deploy <br/> 3. Share with your special person!
           </p>
           <MagneticButton 
             onClick={() => window.location.href = "/faq"}
@@ -1715,6 +1729,7 @@ const PromoBanners = () => (
             View FAQ <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </MagneticButton>
         </div>
+
         <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center pointer-events-none">
           <div className="w-32 h-32 sm:w-64 sm:h-64 bg-[var(--color-bg-primary)]/60 dark:bg-slate-800 rounded-full absolute top-1/2 -translate-y-1/2 -right-5 sm:-right-10 blur-xl sm:blur-2xl"></div>
           <img 
@@ -1764,8 +1779,9 @@ const ContactSection = () => {
       const { error } = await supabase
         .from("messages")
         .insert([{ name: name.trim(), email: email.trim(), message: message.trim() }]);
-      
+        
       if (error) throw error;
+
       addToast("Message sent! We'll get back to you shortly.", "success");
       setMessage("");
       setHasConsent(false);
@@ -1967,7 +1983,6 @@ const ReviewsPage = () => {
   const [role, setRole] = useState("");
   const [text, setText] = useState("");
   const [rating, setRating] = useState(5);
-  
   const { addToast, user } = useAppContext();
 
   useEffect(() => {
@@ -1984,18 +1999,20 @@ const ReviewsPage = () => {
       addToast("Please enter your name and review message.", "info");
       return;
     }
+
     const newReview = {
       name: name.trim(),
       role: role.trim() || "Verified Buyer",
       text: text.trim(),
     };
+
     setReviewsList([newReview, ...reviewsList]);
     
     setRole("");
     setText("");
     setRating(5);
     
-    if (!user) setName(""); 
+    if (!user) setName("");
     
     addToast("Thank you! Your review has been added.", "success");
   };
@@ -2022,15 +2039,16 @@ const ReviewsPage = () => {
             Alongside the screenshots, here are the stories behind those launches.
           </p>
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reviewsList.map((review, idx) => (
-            <motion.div
-               initial={{ opacity: 0, y: 20 }}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              key={idx}
-               className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow border border-[var(--color-bg-secondary)]/80 dark:border-slate-800 flex flex-col"
+              key={idx} 
+              className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow border border-[var(--color-bg-secondary)]/80 dark:border-slate-800 flex flex-col"
             >
               <div className="flex items-center gap-4 mb-5">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradients[idx % avatarGradients.length]} text-white flex items-center justify-center font-bold text-xl shadow-sm shrink-0`}>
@@ -2041,11 +2059,13 @@ const ReviewsPage = () => {
                   <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--color-text-primary)]/40 dark:text-slate-500">{review.role}</span>
                 </div>
               </div>
+              
               <div className="flex gap-1 text-amber-400 mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
               </div>
+
               <p className="text-[var(--color-text-primary)]/80 dark:text-slate-300 text-sm leading-relaxed flex-1 italic">
                 "{review.text}"
               </p>
@@ -2064,6 +2084,7 @@ const ReviewsPage = () => {
               Bought a template or had a custom build? Let us know what you think!
             </p>
           </div>
+
           <form onSubmit={handleAddReview} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -2091,6 +2112,7 @@ const ReviewsPage = () => {
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-1.5">
                 Rating
@@ -2107,6 +2129,7 @@ const ReviewsPage = () => {
                 ))}
               </div>
             </div>
+
             <div>
               <label className="block text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-1.5">
                 Your Review
@@ -2119,6 +2142,7 @@ const ReviewsPage = () => {
                 className="w-full bg-[var(--color-bg-primary)]/50 dark:bg-slate-800 border border-[var(--color-bg-secondary)] dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent-pink)] transition-colors resize-none"
               />
             </div>
+
             <button
               type="submit"
               className="w-full bg-[var(--color-text-primary)] hover:bg-[var(--color-accent-purple)] text-white dark:bg-slate-100 dark:text-slate-900 font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-[var(--color-text-primary)]/10 cursor-pointer"
@@ -2234,7 +2258,7 @@ const Footer = () => {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  
+
   // DPDP Consent State
   const [hasConsent, setHasConsent] = useState(false);
 
@@ -2311,6 +2335,7 @@ const Footer = () => {
 
   const handleUnsubscribe = async () => {
     if (!user?.email) return;
+
     try {
       // Calls the secure Postgres RPC function we created earlier
       const { error } = await supabase.rpc("unsubscribe_user", {
@@ -2403,8 +2428,8 @@ const Footer = () => {
         {/* Existing Footer Links Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16 border-b border-white/10">
           <div className="md:col-span-4 flex flex-col gap-4 text-left items-start">
-            <div
-               onClick={() => handleNavClick("/")}
+            <div 
+              onClick={() => handleNavClick("/")}
               className="flex items-center gap-2 cursor-pointer"
             >
               <img src="/icon.png" alt="Canvas Builds Icon" className="w-9 h-9 object-contain shadow-sm dark:hidden" />
@@ -2449,6 +2474,7 @@ const Footer = () => {
               </div>
             </div>
           </div>
+
           <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8 text-left">
             <div className="flex flex-col gap-3">
               <h4 className="font-bold text-white text-xs uppercase tracking-widest mb-1">
@@ -2511,9 +2537,13 @@ const Footer = () => {
             </div>
           </div>
         </div>
+
         <div className="flex flex-col sm:flex-row justify-between items-center pt-8 gap-4 text-xs text-white/50">
-          <div>
-            &copy; {new Date().getFullYear()} Canvas Builds. Made with ❤️ by Adarsh.
+          <div className="flex flex-col gap-2 text-center sm:text-left">
+            <span>&copy; {new Date().getFullYear()} Canvas Builds. Made with ❤️ by Adarsh.</span>
+            <span className="text-[9px] text-white/30 max-w-xl leading-relaxed">
+              *All third-party trademarks, service marks, logos, and brand names referenced on this site are the property of their respective owners. Their use does not imply affiliation or endorsement.
+            </span>
           </div>
           <div>
             <a href="mailto:canvasbuildsofficial@gmail.com" className="hover:text-[#E2FB6C] transition-colors">

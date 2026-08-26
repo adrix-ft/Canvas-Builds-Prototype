@@ -19,6 +19,7 @@ const AnalyticsChart = ({ orders }: { orders: any[] }) => {
     const days = timeRange;
     const bucketValues = Array(days).fill(0);
     const bucketLabels = Array(days).fill('');
+
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
@@ -177,7 +178,7 @@ const AnalyticsChart = ({ orders }: { orders: any[] }) => {
       </div>
     </div>
   );
-};
+}
 
 export const AdminDashboard = () => {
   const { addToast, user, isAdmin, setIsAuthOpen, handleLogout } = useAppContext();
@@ -303,6 +304,7 @@ export const AdminDashboard = () => {
       const payload = { ...productForm };
       delete payload.id;
       delete payload.created_at;
+
       let res;
       if (productForm.id) {
         res = await supabase.from('products').update(payload).eq('id', productForm.id).select();
@@ -331,6 +333,7 @@ export const AdminDashboard = () => {
     try {
       const payload = { ...bundleForm };
       delete payload.id;
+      
       try {
         payload.included_items = JSON.parse(bundleForm.included_items || '[]');
         payload.emoji_list = JSON.parse(bundleForm.emoji_list || '[]');
@@ -338,6 +341,7 @@ export const AdminDashboard = () => {
         addToast("Invalid JSON format in Emoji List.", "info");
         return;
       }
+
       let res;
       if (bundleForm.id) {
         res = await supabase.from('bundles').update(payload).eq('id', bundleForm.id).select();
@@ -401,15 +405,18 @@ export const AdminDashboard = () => {
   const handleZipUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
+    
     if (!file.name.endsWith('.zip')) {
       addToast("Please upload a valid .zip file", "info");
       return;
     }
+
     setIsUploadingZip(true);
     try {
       const { error } = await supabase.storage.from('templates').upload(file.name, file, { upsert: true });
       if (error) throw error;
       addToast(`Successfully uploaded ${file.name}`, "success");
+      
       const { data } = await supabase.storage.from('templates').list();
       if (data) setAvailableZipFiles(data.filter(f => f.name !== '.emptyFolderPlaceholder').map(f => f.name));
       setProductForm({ ...productForm, zip_filename: file.name });
@@ -424,8 +431,10 @@ export const AdminDashboard = () => {
   const toggleBundleProduct = (productTitle: string) => {
     let currentItems: string[] = [];
     try { currentItems = JSON.parse(bundleForm.included_items || '[]'); } catch { currentItems = []; }
+    
     if (currentItems.includes(productTitle)) currentItems = currentItems.filter(t => t !== productTitle);
     else currentItems.push(productTitle);
+    
     setBundleForm({ ...bundleForm, included_items: JSON.stringify(currentItems) });
   };
 
@@ -584,7 +593,6 @@ export const AdminDashboard = () => {
                   <motion.div variants={itemVariants} className="lg:col-span-2 bg-white dark:bg-slate-950 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
                     <AnalyticsChart orders={orders} />
                   </motion.div>
-
                   <motion.div variants={itemVariants} className="bg-white dark:bg-slate-950 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm flex flex-col">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="font-bold text-sm text-[var(--color-text-primary)]">Recent Live Purchases</h4>
@@ -626,7 +634,6 @@ export const AdminDashboard = () => {
                             />
                           </div>
                         </div>
-
                         <div>
                           <div className="flex justify-between text-xs font-bold mb-1">
                             <span className="text-cyan-600 dark:text-cyan-400">Ready Website</span>
@@ -642,7 +649,7 @@ export const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="text-[10px] text-slate-400 mt-4 pt-3 border-t border-black/5 dark:border-white/5">
-                      Auto-calculated from items in the Supabase `orders` table[cite: 1, 4].
+                      Auto-calculated from items in the Supabase `orders` table.
                     </div>
                   </motion.div>
 
@@ -684,7 +691,6 @@ export const AdminDashboard = () => {
                   </motion.div>
 
                 </div>
-
               </motion.div>
             )}
 
@@ -761,6 +767,7 @@ export const AdminDashboard = () => {
                 {filteredData.bundles.map(b => {
                   let emojis = ["🎁"];
                   try { emojis = JSON.parse(b.emoji_list); } catch { /* ignore */ }
+
                   return (
                     <motion.div variants={itemVariants} key={b.id} className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-950 border border-black/5 dark:border-white/5 text-xs">
                       <div className="flex items-center gap-4 min-w-0">
@@ -831,7 +838,6 @@ export const AdminDashboard = () => {
                     </div>
                   ))}
                 </div>
-
                 <div className="flex-1 bg-white dark:bg-slate-950 rounded-2xl border border-black/5 dark:border-white/5 p-5 flex flex-col">
                   {replyState ? (
                     <div className="flex flex-col h-full">
@@ -960,7 +966,7 @@ export const AdminDashboard = () => {
                   <input required type="text" className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-black/10 dark:border-white/10 rounded-xl outline-none" value={bundleForm.price} onChange={e => setBundleForm({...bundleForm, price: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">Original Price (e.g. ₹1299)</label>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Original Price (For active sales only)</label>
                   <input type="text" className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-black/10 dark:border-white/10 rounded-xl outline-none" value={bundleForm.original_price} onChange={e => setBundleForm({...bundleForm, original_price: e.target.value})} />
                 </div>
                 <div className="sm:col-span-2">
