@@ -81,12 +81,12 @@ async function deliverOrder(order) {
   const invoiceRows = order.items.map(item => `
     <tr>
       <td class="border-color" style="padding: 14px 0; border-bottom: 1px solid #e2e8f0; width: 60%; vertical-align: top;">
-        <span class="text-primary" style="color: #042416; font-weight: bold; font-size: 14px; word-break: break-word;">${item.title}</span>
+        <span class="text-primary" style="color: #09090b; font-weight: bold; font-size: 14px; word-break: break-word;">${item.title}</span>
         <div class="text-secondary" style="font-size: 10px; color: #718096; font-weight: normal; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px;">
           ${item.priceType === 'ready' ? 'Ready Website' : 'Premium Code'}
         </div>
       </td>
-      <td class="text-primary border-color" style="padding: 14px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #042416; font-weight: bold; font-size: 14px; white-space: nowrap; vertical-align: top;">
+      <td class="text-primary border-color" style="padding: 14px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #09090b; font-weight: bold; font-size: 14px; white-space: nowrap; vertical-align: top;">
         ₹${item.price}
       </td>
     </tr>
@@ -102,7 +102,7 @@ async function deliverOrder(order) {
 
     downloadSection = `
       <div class="card-bg border-color" style="background-color: #f8fafc; border-radius: 16px; padding: 20px 16px; margin-top: 24px; border: 1px solid #e2e8f0;">
-        <h3 class="text-primary" style="margin: 0 0 8px; font-size: 16px; color: #042416; font-weight: 800;">Your Secure Downloads</h3>
+        <h3 class="text-primary" style="margin: 0 0 8px; font-size: 16px; color: #09090b; font-weight: 800;">Your Secure Downloads</h3>
         <p class="text-secondary" style="margin: 0 0 12px; font-size: 13px; color: #4a5568; line-height: 1.5;">Links expire in <strong>24 hours</strong>. Please download your files immediately.</p>
         ${linksList}
       </div>
@@ -185,14 +185,15 @@ async function deliverOrder(order) {
       }
     </style>
   </head>
-  <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f4; margin: 0; padding: 0; -webkit-text-size-adjust: 100%;">
+  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; background-color: #f6f6f4; margin: 0; padding: 0; -webkit-text-size-adjust: 100%;">
     <div class="wrapper">
       <div class="container" style="background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0;">
         <table width="100%" cellpadding="0" cellspacing="0">
           
-          <!-- Header -->
+          <!-- Header with Logo -->
           <tr>
-            <td class="mobile-padding" style="padding: 32px 24px 24px; text-align: center; background-color: #042416;">
+            <td class="mobile-padding" style="padding: 32px 24px 24px; text-align: center; background-color: #09090b;">
+              <img src="https://canvas-builds-prototype.vercel.app/icon2.png" alt="Canvas Builds" width="48" height="48" style="display: block; margin: 0 auto 12px; border-radius: 12px;">
               <div style="color: #ffffff; font-weight: 900; font-size: 26px; letter-spacing: -0.5px;">Canvas<span style="color: #10b981;">Builds</span></div>
               <div style="color: #10b981; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: bold;">Official Receipt</div>
             </td>
@@ -203,7 +204,7 @@ async function deliverOrder(order) {
             <td class="mobile-padding" style="padding: 32px 24px;">
               ${accountBadge}
 
-              <h1 class="text-primary" style="margin: 0 0 8px; font-size: 22px; color: #042416; font-weight: 800; letter-spacing: -0.5px;">Hi ${customerName}, thanks for your order!</h1>
+              <h1 class="text-primary" style="margin: 0 0 8px; font-size: 22px; color: #09090b; font-weight: 800; letter-spacing: -0.5px;">Hi ${customerName}, thanks for your order!</h1>
               <p class="text-secondary" style="margin: 0 0 24px; font-size: 14px; color: #4a5568; line-height: 1.6;">Your payment has been successfully processed. Here is your receipt and access links.</p>
 
               <!-- Invoice Details Card -->
@@ -212,11 +213,11 @@ async function deliverOrder(order) {
                   <tr>
                     <td class="border-color" style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; width: 60%; word-break: break-all; vertical-align: top;">
                       <span class="text-secondary" style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Order ID</span><br>
-                      <span class="text-primary" style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${order.razorpay_order_id}</span>
+                      <span class="text-primary" style="font-size: 12px; color: #09090b; font-weight: bold; margin-top: 2px; display: inline-block;">${order.razorpay_order_id}</span>
                     </td>
                     <td class="border-color" style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; text-align: right; width: 40%; vertical-align: top;">
                       <span class="text-secondary" style="font-size: 9px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Date</span><br>
-                      <span class="text-primary" style="font-size: 12px; color: #042416; font-weight: bold; margin-top: 2px; display: inline-block;">${orderDate}</span>
+                      <span class="text-primary" style="font-size: 12px; color: #09090b; font-weight: bold; margin-top: 2px; display: inline-block;">${orderDate}</span>
                     </td>
                   </tr>
                   
@@ -240,9 +241,12 @@ async function deliverOrder(order) {
             </td>
           </tr>
 
-          <!-- Footer with Socials -->
+          <!-- Footer with Note and Socials -->
           <tr>
-            <td class="mobile-padding" style="background-color: #042416; padding: 24px 16px; text-align: center;">
+            <td class="mobile-padding" style="background-color: #09090b; padding: 24px 16px; text-align: center;">
+              <p style="margin: 0 0 16px; font-size: 12px; color: #94a3b8; font-style: italic;">
+                "Thanks for supporting my indie work!" — Adarsh
+              </p>
               <div style="margin-bottom: 16px;">
                 <a href="https://www.instagram.com/canvas_builds?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" style="display: inline-block; margin: 0 8px; text-decoration: none;">
                   <img src="https://cdn.simpleicons.org/instagram/ffffff" alt="Instagram" width="20" height="20" style="opacity: 0.8;">
