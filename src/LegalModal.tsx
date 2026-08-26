@@ -44,7 +44,7 @@ export const LegalModal = () => {
       sections: [
         {
           heading: "1. Entity & Platform Disclosures",
-          text: "Canvas Builds operates as an inventory e-commerce entity. All digital goods and services provided on this platform are owned and sold directly by Canvas Builds, based in Meerut, India. The country of origin for all proprietary software and templates is India.",
+          text: "Canvas Builds operates as an inventory e-commerce entity. All digital goods and services provided on this platform are owned and sold directly by Canvas Builds, registered at 12/4, Sindhi Colony, Ashok Nagar, Shahganj, Agra, Uttar Pradesh - 282010, India. The country of origin for all proprietary software and templates is India.",
         },
         {
           heading: "2. Pricing & Payments",
@@ -60,7 +60,7 @@ export const LegalModal = () => {
         },
         {
           heading: "5. Grievance Officer & Dispute Resolution",
-          text: "Under the Consumer Protection (E-Commerce) Rules, 2020, user grievances regarding products or services can be directed to our Grievance Officer:\nName: Adarsh Yadav\nContact: canvasbuildsofficial@gmail.com\nComplaints will be acknowledged within 48 hours and addressed within one month. Disputes shall be subject to the exclusive jurisdiction of the courts in Meerut, India.",
+          text: "Under the Consumer Protection (E-Commerce) Rules, 2020, user grievances regarding products or services can be directed to our Grievance Officer:\nName: Adarsh Yadav\nContact: canvasbuildsofficial@gmail.com\nComplaints will be acknowledged within 48 hours and addressed within one month. Disputes shall be subject to the exclusive jurisdiction of the courts in Agra, India.",
         },
       ],
     },

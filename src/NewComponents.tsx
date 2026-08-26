@@ -75,10 +75,12 @@ export const CartDrawer = () => {
     removeFromCart,
     clearCart,
     addToast,
+    setLegalModal,
   } = useAppContext();
 
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutConsent, setCheckoutConsent] = useState(false);
   
   // Guest Checkout States
   const [showGuestModal, setShowGuestModal] = useState(false);
@@ -159,6 +161,7 @@ export const CartDrawer = () => {
             setIsCartOpen(false);
             setShowGuestModal(false);
             setIsCheckingOut(false);
+            setCheckoutConsent(false);
             addToast("Payment successful! Your order is ready.", "success");
             
             // Route guests home, and registered users to the dashboard
@@ -215,6 +218,7 @@ export const CartDrawer = () => {
       clearCart();
       setIsCartOpen(false);
       setShowGuestModal(false);
+      setCheckoutConsent(false);
     }
   };
 
@@ -261,7 +265,7 @@ export const CartDrawer = () => {
                     Where should we send it?
                   </h3>
                   <p className="text-center text-sm text-[var(--color-text-primary)]/60 mb-8 leading-relaxed">
-                    Enter your email to receive your invoice and secure download links. No account required.
+                    Enter your email to receive your invoice and secure download links. No account required. Your email is strictly used for order fulfillment.
                   </p>
                   
                   <form onSubmit={handleGuestSubmit} className="flex flex-col gap-4">
@@ -356,8 +360,8 @@ export const CartDrawer = () => {
             </div>
 
             {cart.length > 0 && (
-              <div className="p-6 bg-white dark:bg-slate-900 border-t border-[var(--color-bg-secondary)]/50 dark:border-slate-800 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
-                <div className="flex justify-between items-center mb-4">
+              <div className="p-6 bg-white dark:bg-slate-900 border-t border-[var(--color-bg-secondary)]/50 dark:border-slate-800 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col gap-4">
+                <div className="flex justify-between items-center">
                   <span className="text-[var(--color-text-primary)]/70 font-bold uppercase tracking-wider text-xs">
                     Subtotal ({cart.length} item{cart.length > 1 ? "s" : ""})
                   </span>
@@ -366,14 +370,33 @@ export const CartDrawer = () => {
                   </span>
                 </div>
                 
+                {/* LEGAL CONSENT & 18+ CHECKBOX */}
+                <div className="flex items-start gap-3 p-3 sm:p-4 bg-[var(--color-bg-primary)]/50 dark:bg-slate-950/50 rounded-xl border border-[var(--color-bg-secondary)] dark:border-slate-800">
+                  <input
+                    type="checkbox"
+                    id="checkout-consent"
+                    checked={checkoutConsent}
+                    onChange={(e) => setCheckoutConsent(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[var(--color-accent-purple)] focus:ring-[var(--color-accent-purple)] cursor-pointer shrink-0"
+                  />
+                  <label htmlFor="checkout-consent" className="text-[10px] sm:text-xs text-[var(--color-text-primary)]/75 leading-relaxed cursor-pointer select-none">
+                    I confirm I am <strong>18 years of age or older</strong>, and I agree to the <button type="button" onClick={(e) => { e.preventDefault(); setIsCartOpen(false); setLegalModal('terms'); }} className="text-[var(--color-accent-purple)] font-bold hover:underline">Terms of Service</button> and <button type="button" onClick={(e) => { e.preventDefault(); setIsCartOpen(false); setLegalModal('privacy'); }} className="text-[var(--color-accent-purple)] font-bold hover:underline">Privacy Policy</button>.
+                  </label>
+                </div>
+
                 {/* Live Razorpay Checkout Button */}
                 <button
                   onClick={initiateCheckout}
-                  disabled={isCheckingOut}
-                  className="w-full bg-[var(--color-text-primary)] text-white dark:bg-slate-800 dark:hover:bg-[var(--color-accent-pink)] hover:bg-[var(--color-accent-purple)] py-4 rounded-xl font-bold transition-all hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
+                  disabled={isCheckingOut || !checkoutConsent}
+                  className="w-full bg-[var(--color-text-primary)] text-white dark:bg-slate-800 dark:hover:bg-[var(--color-accent-pink)] hover:bg-[var(--color-accent-purple)] py-4 rounded-xl font-bold transition-all hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none cursor-pointer"
                 >
                   <Check className="w-5 h-5" /> Proceed to Checkout
                 </button>
+
+                {/* REFUND POLICY DISCLAIMER */}
+                <p className="text-[10px] text-center text-[var(--color-text-primary)]/50 font-medium">
+                  🔒 As this is a digital product, all sales are final. No refunds.
+                </p>
               </div>
             )}
           </motion.div>
